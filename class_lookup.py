@@ -3,65 +3,55 @@ from bs4 import BeautifulSoup
 from classes import name_list
 import random
 
-def get_url_list(input_course_code):
+def get_sub_nbr(input_course_code):
 
-    print("Parsing the following from discord: ", input_course_code)
+    #print("Parsing the following from discord: ", input_course_code)
 
-    course_code = input_course_code.replace(" ","")
+    lower_course_code = input_course_code.replace(" ","")
 
     end_signifiers = ['H','h','L','l','W','w','R','r']
 
-    if course_code[-1] in end_signifiers:
-    # check length of string, assign accordingly
-        if len(course_code) == 6:
-            subject = course_code[:2]
-            cat_nbr = course_code[2:]
+    course_code = lower_course_code.upper()
 
-        elif len(course_code) == 7:
-            subject = course_code[:3]
-            cat_nbr = course_code[3:]
+    if course_code not in name_list:
+        if course_code[-1] in end_signifiers:
+            if len(course_code) == 6:
+                subject = course_code[:2]
+                cat_nbr = course_code[2:]
 
-        elif len(course_code) == 8:
-            subject = course_code[:4]
-            cat_nbr = course_code[4:]
+            elif len(course_code) == 7:
+                subject = course_code[:3]
+                cat_nbr = course_code[3:]
+
+            elif len(course_code) == 8:
+                subject = course_code[:4]
+                cat_nbr = course_code[4:]
+
+            else:
+                subject = 'aaa'
+                cat_nbr = '000'
 
         else:
-            subject = '123456789'
-            cat_nbr = 'xxxxxxxxx'
+            if len(course_code) == 5:
+                subject = course_code[:2]
+                cat_nbr = course_code[2:]
 
-    else:
-        if len(course_code) == 5:
-            subject = course_code[:2]
-            cat_nbr = course_code[2:]
+            elif len(course_code) == 6:
+                subject = course_code[:3]
+                cat_nbr = course_code[3:]
 
-        elif len(course_code) == 6:
-            subject = course_code[:3]
-            cat_nbr = course_code[3:]
+            elif len(course_code) == 7:
+                subject = course_code[:4]
+                cat_nbr = course_code[4:]
+            else:
+                subject = 'aaa'
+                cat_nbr = '000'
 
-        elif len(course_code) == 7:
-            subject = course_code[:4]
-            cat_nbr = course_code[4:]
-        else:
-            subject = '123456789'
-            cat_nbr = 'xxxxxxxxxx'
+    else: # Subject is in name list
+        subject = course_code
+        cat_nbr = ""
 
-    try: #validates that subject is a string  and catnbr has 3 numbers, may be invalid
-        str(subject)
-        if cat_nbr[-1] in end_signifiers:
-            int(cat_nbr[:3])
-            upper_nbr = cat_nbr[:-1] + cat_nbr[-1].upper()
-            cat_nbr = upper_nbr
-        else:
-            int(cat_nbr)
-
-    except ValueError:
-        return None
-
-    upper_subject = subject.upper()
-
-    url_list = get_urls(upper_subject, cat_nbr)
-
-    return url_list
+    return subject, cat_nbr
 
 def get_urls(subject, cat_nbr):
 
@@ -102,7 +92,7 @@ def get_class_dict(url_list):
 
     if url_list:
         for url in url_list:
-            course_name, course_description, course_units, course_prerequisites, course_designation = get_class_data(url)
+            course_name, course_description, course_units, course_prerequisites, course_designation = long_lookup(url)
 
             if course_name and course_description and course_units:
                 # Split the string using '&' as delimiter
@@ -120,24 +110,49 @@ def get_class_dict(url_list):
 
     return class_dict
 
-def get_class_data(course_url):
+def get_class_dict_short(subject, cat_nbr):
 
-    # Send an HTTP GET request to the course page
-    course_response = requests.get(course_url)
+    class_dict = {}
+
+    # URL of the search page
+    search_url = f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term=1237"
+
+    # Send an HTTP GET request to the search page
+    search_response = requests.get(search_url)
 
     # Parse the course page HTML
-    course_soup = BeautifulSoup(course_response.content, "html.parser")
+    search_soup = BeautifulSoup(search_response.content, "html.parser")
 
-    course_name = course_soup.find("h2").text
+    # Find all <a> tags with course details links
+    course_links = search_soup.find_all('a', title='view course details')
+
+    # Extract and store course IDs and names in the dictionary
+    for link in course_links:
+        course_id = link['href'].split('=')[1].split('&')[0]
+        course_name = link.get_text(strip=True)
+        class_dict[course_id] = course_name
+
+    return class_dict
+
+def long_lookup(course_url):
+
+    # Send an HTTP GET request to the course page
+    search_response = requests.get(course_url)
+
+    # Parse the course page HTML
+    search_soup = BeautifulSoup(search_response.content, "html.parser")
+
+    # Find the <h2> element and its text
+    course_name = search_soup.find("h2").text
 
     # Find the <strong> element with the text "Description:"
-    course_description = course_soup.find("strong", text="Description:").find_next_sibling(text=True).strip()
+    course_description = search_soup.find("strong", text="Description:").find_next_sibling(text=True).strip()
 
     # Find the <strong> element with the text "Units:"
-    course_units = course_soup.find("strong", text="Units:").find_next_sibling(text=True).strip()
+    course_units = search_soup.find("strong", text="Units:").find_next_sibling(text=True).strip()
 
     try:
-        course_designation = course_soup.find("strong", text="Requirement Designation:").find_next_sibling(text=True).strip()
+        course_designation = search_soup.find("strong", text="Requirement Designation:").find_next_sibling(text=True).strip()
 
     except Exception as e:
         pass
@@ -153,7 +168,7 @@ def get_class_data(course_url):
 
     for phrase in prereq_search:
         try:
-            course_prerequisites = course_soup.find("strong", text=phrase).find_next_sibling(text=True).strip()
+            course_prerequisites = search_soup.find("strong", text=phrase).find_next_sibling(text=True).strip()
 
             if course_prerequisites:
                 extracted_text = " ".join(phrase.split()[:-1])
@@ -171,15 +186,15 @@ def random_class(): # generate a random class for funsies
     random_subject = random.choice(name_list)
     url_list = get_urls(random_subject, "")
     random_url = random.choice(url_list)
-    course_name, course_description, course_units, course_prerequisites, course_designation = get_class_data(random_url)
+    course_name, course_description, course_units, course_prerequisites, course_designation = long_lookup(random_url)
     class_dict = get_class_dict([random_url])
 
     return class_dict
 
-
 def prereq_tree(input_course_code):
 
-    url_list = get_url_list(input_course_code)
+    subject, cat_nbr = get_sub_nbr(input_course_code)
+    url_list = get_url_list(subject, cat_nbr)
 
     if url_list:
         course_url = url_list[0]
@@ -189,10 +204,10 @@ def prereq_tree(input_course_code):
         # KEEP THEM IN A LIST
 
         # Send an HTTP GET request to the course page
-        course_response = requests.get(course_url)
+        search_response = requests.get(course_url)
 
         # Parse the course page HTML
-        course_soup = BeautifulSoup(course_response.content, "html.parser")
+        search_soup = BeautifulSoup(search_response.content, "html.parser")
 
         prereq_search = [
         "Prerequisite:",
@@ -202,7 +217,7 @@ def prereq_tree(input_course_code):
         ]
 
         try:
-            course_prerequisites = course_soup.find("strong", text="Prerequisite:").find_next_sibling(text=True).strip()
+            course_prerequisites = search_soup.find("strong", text="Prerequisite:").find_next_sibling(text=True).strip()
         except Exception as e:
             course_prerequisites = None
 
