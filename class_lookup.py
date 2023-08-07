@@ -1,5 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
+from classes import name_list
+import random
 
 def get_url_list(input_course_code):
 
@@ -164,11 +166,20 @@ def get_class_data(course_url):
 
     return course_name, course_description, course_units, course_prerequisites, course_designation
 
+def random_class(): # generate a random class for funsies
+
+    random_subject = random.choice(name_list)
+    url_list = get_urls(random_subject, "")
+    random_url = random.choice(url_list)
+    course_name, course_description, course_units, course_prerequisites, course_designation = get_class_data(random_url)
+    class_dict = get_class_dict([random_url])
+
+    return class_dict
+
 
 def prereq_tree(input_course_code):
 
     url_list = get_url_list(input_course_code)
-    print(url_list)
 
     if url_list:
         course_url = url_list[0]
@@ -192,12 +203,8 @@ def prereq_tree(input_course_code):
 
         try:
             course_prerequisites = course_soup.find("strong", text="Prerequisite:").find_next_sibling(text=True).strip()
-            if course_prerequisites in prereq_search:
-                print(course_prerequisites)
         except Exception as e:
             course_prerequisites = None
-
-        print(course_prerequisites)
 
     else:
         print("No exist")
