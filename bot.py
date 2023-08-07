@@ -7,12 +7,13 @@ import requests
 from bs4 import BeautifulSoup
 from class_lookup import *
 from classes import name_list
+load_dotenv()  # Load environment variables from .env file
 
+# Set prefix
 prefix = 'axe.'
 
 # Create a dictionary to store user cooldowns
 user_cooldowns = {}
-load_dotenv()  # Load environment variables from .env file
 
 def run_discord_bot():
   TOKEN = os.getenv('DISCORD_TOKEN')
@@ -28,19 +29,28 @@ def run_discord_bot():
   @client.event
   async def on_message(msg):
 
-    if msg.author == client.user:
+    if msg.author == client.user: # Ensure bot doesnt listen to self
         return 0
 
-    if msg.content == f"{prefix}hi":
+    if msg.content == f"{prefix}hi": # Testrun
         await msg.channel.send("Listening!")
         return 0
 
-    if msg.attachments:
-        # Check if there are any attachments in the message
+    if msg.attachments: # Check if there are any attachments in the message
         for attachment in msg.attachments:
                 if attachment.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
                     return 0
-    if msg.content.startswith(f"{prefix}random"):
+    if msg.content.startswith(f"{prefix}random"): # Gen random class
+
+        # Check if the user is on cooldown
+        if msg.author.id in user_cooldowns and time.time() - user_cooldowns[msg.author.id] < 5:  # 5 seconds cooldown
+            embed = discord.Embed(title=f"Rate Limit!", description="Please wait another few seconds before using this command.", color=0x00ff00)
+            await msg.channel.send(embed=embed)
+
+            return 0
+        else:
+            # Update the user's last message time
+            user_cooldowns[msg.author.id] = time.time()
 
         class_dict = random_class()
 
