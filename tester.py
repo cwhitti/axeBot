@@ -1,6 +1,7 @@
 from class_lookup import *
 
-class_dict = get_class_dict()
+input_course_code = input("Look up class: ")
+class_dict = get_class_dict(input_course_code)
 
 for course_id, course_data in class_dict.items():
     # Print the extracted information

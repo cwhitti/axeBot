@@ -66,6 +66,8 @@ def find_class(course_url):
 
 def get_class_dict(input_course_code):
 
+    print("Parsing the following from discord: ", input_course_code)
+
     course_code = input_course_code.replace(" ","")
     class_dict = {}
 
@@ -100,8 +102,8 @@ def get_class_dict(input_course_code):
             subject = course_code[:4]
             cat_nbr = course_code[4:]
         else:
-            subject = 0
-            cat_nbr = 0
+            subject = '123456789'
+            cat_nbr = 'xxxxxxxxxx'
 
     try:
         str(subject)
@@ -134,5 +136,6 @@ def get_class_dict(input_course_code):
 
     else:
         print("dont exist")
+        return None
 
     return class_dict

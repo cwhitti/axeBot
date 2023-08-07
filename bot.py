@@ -24,25 +24,33 @@ def run_discord_bot():
     if msg.content.startswith(f"{prefix}lookup"):
 
         args = msg.content.split()
-        input_course_code = args[1]
+        input_course_code = ""
+
+        for i in range(1, len(args)):
+            input_course_code += args[i]
 
         class_dict = get_class_dict(input_course_code)
 
-        for course_id, course_data in class_dict.items():
+        if class_dict:
 
-            course_name = course_data[0]
-            course_description = course_data[1]
-            course_units = course_data[2]
-            course_prerequisites = course_data[3]
+            for course_id, course_data in class_dict.items():
 
-            embed = discord.Embed(title=f"{course_name}", color=0x00ff00)
-            embed.add_field(name="Course ID:", value=course_id, inline=False)
-            embed.add_field(name="Course Description:", value=course_description, inline=False)
-            embed.add_field(name="Course Units:", value=course_units, inline=False)
-            embed.add_field(name="Course Prerequisites:", value=course_prerequisites, inline=False)
+                course_name = course_data[0]
+                course_description = course_data[1]
+                course_units = course_data[2]
+                course_prerequisites = course_data[3]
 
+                embed = discord.Embed(title=f"{course_name}", color=0x00ff00)
+                embed.add_field(name="Course ID:", value=course_id, inline=False)
+                embed.add_field(name="Course Description:", value=course_description, inline=False)
+                embed.add_field(name="Course Units:", value=course_units, inline=False)
+                embed.add_field(name="Course Prerequisites:", value=course_prerequisites, inline=False)
+
+                await msg.channel.send(embed=embed)
+
+        else:
+            embed = discord.Embed(title=f"{input_course_code}", description="Sorry, we couldn't find this course.", color=0x00ff00)
             await msg.channel.send(embed=embed)
-
 
 
   client.run(TOKEN)
