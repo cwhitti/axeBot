@@ -71,7 +71,9 @@ def get_class_dict(input_course_code):
     course_code = input_course_code.replace(" ","")
     class_dict = {}
 
-    if course_code[-1] == 'H':
+    end_signifiers = ['H','h','L','l','W','w']
+
+    if course_code[-1] in end_signifiers:
     # check length of string, assign accordingly
         if len(course_code) == 6:
             subject = course_code[:2]
@@ -86,8 +88,8 @@ def get_class_dict(input_course_code):
             cat_nbr = course_code[4:]
 
         else:
-            subject = 0
-            cat_nbr = 0
+            subject = '123456789'
+            cat_nbr = 'xxxxxxxxx'
 
     else:
         if len(course_code) == 5:
@@ -105,16 +107,17 @@ def get_class_dict(input_course_code):
             subject = '123456789'
             cat_nbr = 'xxxxxxxxxx'
 
-    try:
+    try: #validates that subject is a string  and catnbr has 3 numbers, may be invalid
         str(subject)
-        if cat_nbr[-1] == 'H':
-            check_len = len(cat_nbr) - 3
-            int(cat_nbr[:check_len])
+        if cat_nbr[-1] in end_signifiers:
+            int(cat_nbr[:3])
+            upper_nbr = cat_nbr[:-1] + cat_nbr[-1].upper()
+            cat_nbr = upper_nbr
         else:
             int(cat_nbr)
 
     except ValueError:
-        return class_dict
+        return None
 
     upper_subject = subject.upper()
     url_list = get_urls(upper_subject, cat_nbr)
