@@ -114,10 +114,16 @@ def run_discord_bot():
             class_dict = get_class_dict_short(subject, cat_nbr)
 
             if class_dict:
-                embed = discord.Embed(title=f"Class List", description=f"Too many results to list - Look one up with {prefix}lookup <XXX000>.", color=0x00ff00)
-                for course_id, course_name in class_dict.items():
-                    embed.add_field(name=course_name, value=f"CourseID: {course_id}", inline=False)
-                await msg.channel.send(embed=embed)
+                embed = discord.Embed(title=f"{len(class_dict)} RESULTS FOUND", color=0x00ff00)
+                embed.set_footer(text=f"Look up a class with {prefix}lookup <XXX000>")
+
+                if len(class_dict) < 200:
+                    for course_id, course_name in class_dict.items():
+                        embed.add_field(name=course_name, value=f"CourseID: {course_id}", inline=False)
+                    await msg.channel.send(embed=embed)
+                else:
+                    embed.add_field(name="Simply too many classes!", value="Try something else",inline=False)
+                    await msg.channel.send(embed=embed)
 
             else:
                 embed = discord.Embed(title=f"{input_course_code}", description="Sorry, we couldn't find this course.", color=0x00ff00)
