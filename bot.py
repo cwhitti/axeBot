@@ -21,6 +21,19 @@ def run_discord_bot():
   @client.event
   async def on_message(msg):
 
+    if msg.author == client.user:
+        return 0
+
+    if msg.content == f"{prefix}hi":
+        await msg.channel.send("Listening!")
+        return 0
+
+    if msg.attachments:
+        # Check if there are any attachments in the message
+        for attachment in msg.attachments:
+                if attachment.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
+                    return 0
+
     if msg.content.startswith(f"{prefix}lookup"):
 
         args = msg.content.split()
@@ -29,7 +42,8 @@ def run_discord_bot():
         for i in range(1, len(args)):
             input_course_code += args[i]
 
-        class_dict = get_class_dict(input_course_code)
+        url_list = get_url_list(input_course_code)
+        class_dict = get_class_dict(url_list)
 
         if class_dict:
 
@@ -52,5 +66,7 @@ def run_discord_bot():
             embed = discord.Embed(title=f"{input_course_code}", description="Sorry, we couldn't find this course.", color=0x00ff00)
             await msg.channel.send(embed=embed)
 
+    if msg.content.startswith(f"{prefix}prereqs"):
+        embed = discord.Embed(title=f"Course Prereqs", description="Working on that!", color=0x00ff00)
 
   client.run(TOKEN)
