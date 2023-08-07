@@ -171,8 +171,6 @@ def long_lookup(course_url):
             course_prerequisites = search_soup.find("strong", text=phrase).find_next_sibling(text=True).strip()
 
             if course_prerequisites:
-                extracted_text = " ".join(phrase.split()[:-1])
-                course_prerequisites = course_prerequisites + (f" - ({extracted_text})")
                 break
 
         except Exception as e:

@@ -96,7 +96,7 @@ def run_discord_bot():
         subject, cat_nbr = get_sub_nbr(input_course_code)
         url_list = get_urls(subject, cat_nbr)
 
-        if len(url_list) <= 2:
+        if len(url_list) <= 5:
             class_dict = get_class_dict(url_list)
 
             if class_dict:
@@ -109,15 +109,16 @@ def run_discord_bot():
                 embed = discord.Embed(title=f"{input_course_code}", description="Sorry, we couldn't find this course.", color=0x00ff00)
                 await msg.channel.send(embed=embed)
 
-        elif len(url_list) > 2:
+        elif len(url_list) > 5:
             # just grab the name and class ID
             class_dict = get_class_dict_short(subject, cat_nbr)
 
             if class_dict:
                 embed = discord.Embed(title=f"{len(class_dict)} RESULTS FOUND", color=0x00ff00)
                 embed.set_footer(text=f"Look up a class with {prefix}lookup <XXX000>")
+                print(len(class_dict))
 
-                if len(class_dict) < 200:
+                if len(class_dict) < 163:
                     for course_id, course_name in class_dict.items():
                         embed.add_field(name=course_name, value=f"CourseID: {course_id}", inline=False)
                     await msg.channel.send(embed=embed)
