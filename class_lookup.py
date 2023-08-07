@@ -98,9 +98,9 @@ def get_class_dict(url_list):
 
     class_dict = {}
 
-    if len(url_list) > 0:
+    if url_list:
         for url in url_list:
-            course_name, course_description, course_units, course_prerequisites = find_class(url)
+            course_name, course_description, course_units, course_prerequisites, course_designation = get_class_data(url)
 
             if course_name and course_description and course_units:
                 # Split the string using '&' as delimiter
@@ -111,16 +111,14 @@ def get_class_dict(url_list):
                     if part.startswith("courseId="):
                         course_id_long = part.split('=')[1]
                         course_id = course_id_long.split('&')[0]
-                        class_dict[course_id] = [course_name , course_description, course_units, course_prerequisites]
+                        class_dict[course_id] = [course_name , course_description, course_units, course_prerequisites, course_designation]
 
     else:
-        print("dont exist")
         return None
 
     return class_dict
 
-
-def find_class(course_url):
+def get_class_data(course_url):
 
     # Send an HTTP GET request to the course page
     course_response = requests.get(course_url)
@@ -135,6 +133,13 @@ def find_class(course_url):
 
     # Find the <strong> element with the text "Units:"
     course_units = course_soup.find("strong", text="Units:").find_next_sibling(text=True).strip()
+
+    try:
+        course_designation = course_soup.find("strong", text="Requirement Designation:").find_next_sibling(text=True).strip()
+
+    except Exception as e:
+        pass
+        course_designation = "Unspecified"
 
     prereq_search = [
     "Prerequisite:",
@@ -157,7 +162,7 @@ def find_class(course_url):
             pass
             course_prerequisites = None
 
-    return course_name, course_description, course_units, course_prerequisites
+    return course_name, course_description, course_units, course_prerequisites, course_designation
 
 
 def prereq_tree(input_course_code):
