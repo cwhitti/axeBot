@@ -1,8 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-
-def search_class(subject, cat_nbr):
+def get_urls(subject, cat_nbr):
 
     url_list = []
 
@@ -31,6 +30,7 @@ def search_class(subject, cat_nbr):
 
     except AttributeError as e:
         raise e
+        return None
 
     return url_list
 
@@ -64,49 +64,75 @@ def find_class(course_url):
 
     return course_name, course_description, course_units, course_prerequisites
 
-def main():
+def get_class_dict(input_course_code):
 
-    # User input for the course code
-    input_course_code = input("Enter the course code (e.g. STA371): ")
     course_code = input_course_code.replace(" ","")
+    class_dict = {}
 
+    if course_code[-1] == 'H':
     # check length of string, assign accordingly
-    if len(course_code) == 5:
-        subject = course_code[:2]
-        cat_nbr = course_code[2:]
+        if len(course_code) == 6:
+            subject = course_code[:2]
+            cat_nbr = course_code[2:]
 
-    elif len(course_code) == 6:
-        subject = course_code[:3]
-        cat_nbr = course_code[3:]
+        elif len(course_code) == 7:
+            subject = course_code[:3]
+            cat_nbr = course_code[3:]
 
-    elif len(course_code) == 7:
-        subject = course_code[:4]
-        cat_nbr = course_code[4:]
+        elif len(course_code) == 8:
+            subject = course_code[:4]
+            cat_nbr = course_code[4:]
+
+        else:
+            subject = 0
+            cat_nbr = 0
 
     else:
-        subject = 0
-        cat_nbr = 0
+        if len(course_code) == 5:
+            subject = course_code[:2]
+            cat_nbr = course_code[2:]
+
+        elif len(course_code) == 6:
+            subject = course_code[:3]
+            cat_nbr = course_code[3:]
+
+        elif len(course_code) == 7:
+            subject = course_code[:4]
+            cat_nbr = course_code[4:]
+        else:
+            subject = 0
+            cat_nbr = 0
+
     try:
         str(subject)
-        int(cat_nbr)
+        if cat_nbr[-1] == 'H':
+            check_len = len(cat_nbr) - 3
+            int(cat_nbr[:check_len])
+        else:
+            int(cat_nbr)
 
     except ValueError:
-        print("Course does not exist.")
-        return 0
+        return class_dict
 
-    url_list = search_class(subject, cat_nbr)
+    upper_subject = subject.upper()
+    url_list = get_urls(upper_subject, cat_nbr)
 
     if len(url_list) > 0:
         for url in url_list:
             course_name, course_description, course_units, course_prerequisites = find_class(url)
+
             if course_name and course_description and course_units:
-                # Print the extracted information
-                print()
-                print("Course Name:",course_name)
-                print("\tCourse Description:", course_description)
-                print("\tCourse Units:", course_units)
-                print("\tCourse Prerequisites:",course_prerequisites)
+                # Split the string using '&' as delimiter
+                split_parts = url.split('?')
+                # Loop through the split parts to find and extract the courseId
+                course_id = None
+                for part in split_parts:
+                    if part.startswith("courseId="):
+                        course_id_long = part.split('=')[1]
+                        course_id = course_id_long.split('&')[0]
+                        class_dict[course_id] = [course_name , course_description, course_units, course_prerequisites]
 
     else:
-        print("Course does not exist.")
-    return 0
+        print("dont exist")
+
+    return class_dict
