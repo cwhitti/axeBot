@@ -5,8 +5,6 @@ import random
 
 def get_sub_nbr(input_course_code):
 
-    #print("Parsing the following from discord: ", input_course_code)
-
     lower_course_code = input_course_code.replace(" ","")
 
     end_signifiers = ['H','h','L','l','W','w','R','r']
@@ -15,23 +13,35 @@ def get_sub_nbr(input_course_code):
 
     if course_code not in name_list:
         if course_code[-1] in end_signifiers:
-            if len(course_code) == 6:
-                subject = course_code[:2]
-                cat_nbr = course_code[2:]
+            if course_code[-2] in end_signifiers: # Has an ending like "ENV301WH"
+                if len(course_code) == 7:
+                    subject = course_code[:3]
+                    cat_nbr = course_code[3:]
 
-            elif len(course_code) == 7:
-                subject = course_code[:3]
-                cat_nbr = course_code[3:]
+                elif len(course_code) == 8:
+                    subject = course_code[:3]
+                    cat_nbr = course_code[3:]
 
-            elif len(course_code) == 8:
-                subject = course_code[:4]
-                cat_nbr = course_code[4:]
+                else:
+                    subject = 'aaa'
+                    cat_nbr = '000'
+            else: # Has an ending like "ENV301W"
+                if len(course_code) == 6:
+                    subject = course_code[:2]
+                    cat_nbr = course_code[2:]
 
-            else:
-                subject = 'aaa'
-                cat_nbr = '000'
+                elif len(course_code) == 7:
+                    subject = course_code[:3]
+                    cat_nbr = course_code[3:]
 
-        else:
+                elif len(course_code) == 8:
+                    subject = course_code[:4]
+                    cat_nbr = course_code[4:]
+
+                else:
+                    subject = 'aaa'
+                    cat_nbr = '000'
+        else: # Has no ending, like "BIO181"
             if len(course_code) == 5:
                 subject = course_code[:2]
                 cat_nbr = course_code[2:]
@@ -46,14 +56,13 @@ def get_sub_nbr(input_course_code):
             else:
                 subject = 'aaa'
                 cat_nbr = '000'
-
     else: # Subject is in name list
         subject = course_code
         cat_nbr = ""
 
     return subject, cat_nbr
 
-def get_urls(subject, cat_nbr):
+def get_urls(subject, cat_nbr): #returns a list of URLS for a lookup
 
     url_list = []
 
@@ -86,7 +95,7 @@ def get_urls(subject, cat_nbr):
 
     return url_list
 
-def get_class_dict(url_list):
+def get_class_dict(url_list): # Returns a dictionary of classes
 
     class_dict = {}
 
@@ -110,7 +119,7 @@ def get_class_dict(url_list):
 
     return class_dict
 
-def get_class_dict_short(subject, cat_nbr):
+def get_class_dict_short(subject, cat_nbr): # Returns a dict of simply course ID and name
 
     class_dict = {}
 

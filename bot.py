@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import requests
 from bs4 import BeautifulSoup
 from class_lookup import *
+import math
 from classes import name_list
 load_dotenv()  # Load environment variables from .env file
 
@@ -40,6 +41,7 @@ def run_discord_bot():
         for attachment in msg.attachments:
                 if attachment.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
                     return 0
+
     if msg.content.startswith(f"{prefix}random"): # Gen random class
 
         # Check if the user is on cooldown
@@ -53,23 +55,20 @@ def run_discord_bot():
             user_cooldowns[msg.author.id] = time.time()
 
         class_dict = random_class()
+        course_id_list = list(class_dict.keys())
+        course_id = course_id_list[0]
+        print(course_id)
 
-        for course_id, course_data in class_dict.items():
+        embed = one_embed_course(course_id, class_dict[course_id])
+        await msg.channel.send(embed=embed)
 
-            course_name = course_data[0]
-            course_description = course_data[1]
-            course_units = course_data[2]
-            course_prerequisites = course_data[3]
-            course_designation = course_data[4]
+    if msg.content.startswith(f"{prefix}help"):
+        embed = create_help_embed()
+        await msg.channel.send(embed=embed)
 
-            embed = discord.Embed(title=f"{course_name}", color=0x00ff00)
-            embed.add_field(name="Course ID:", value=course_id, inline=False)
-            embed.add_field(name="Course Description:", value=course_description, inline=False)
-            embed.add_field(name="Course Units:", value=course_units, inline=False)
-            embed.add_field(name="Course Designation:", value=course_designation, inline=False)
-            embed.add_field(name="Course Prerequisites:", value=course_prerequisites, inline=False)
-
-            await msg.channel.send(embed=embed)
+    if msg.content.startswith(f"{prefix}subjects"):
+        embed = create_subjects_embed()
+        await msg.channel.send(embed=embed)
 
     if msg.content.startswith(f"{prefix}lookup"):
         # Check if the user is on cooldown
@@ -86,7 +85,7 @@ def run_discord_bot():
         input_course_code = ""
 
         if len(args) == 1:
-            embed = discord.Embed(title=f"Sorry, didn't catch that!", description=f"You can look up a class within NAU by using {prefix}lookup <XXX000>", color=0x00ff00)
+            embed = discord.Embed(title=f"Sorry, didn't catch that!", description=f"You can look up a class by using {prefix}lookup <XXX000>", color=0x00ff00)
             await msg.channel.send(embed=embed)
             return 0
 
@@ -102,7 +101,7 @@ def run_discord_bot():
             if class_dict:
                 for course_id, course_data in class_dict.items():
                     #embed course
-                    embed = embed_course(course_id, course_data)
+                    embed = one_embed_course(course_id, course_data)
                     await msg.channel.send(embed=embed)
 
             else:
@@ -114,22 +113,22 @@ def run_discord_bot():
             class_dict = get_class_dict_short(subject, cat_nbr)
 
             if class_dict:
-                embed = discord.Embed(title=f"{len(class_dict)} RESULTS FOUND", color=0x00ff00)
-                embed.set_footer(text=f"Look up a class with {prefix}lookup <XXX000>")
-                print(len(class_dict))
 
-                if len(class_dict) < 163:
-                    for course_id, course_name in class_dict.items():
-                        embed.add_field(name=course_name, value=f"CourseID: {course_id}", inline=False)
-                    await msg.channel.send(embed=embed)
-                else:
-                    embed.add_field(name="Simply too many classes!", value="Try something else",inline=False)
-                    await msg.channel.send(embed=embed)
+                items_per_embed = 100
+                total_items = len(class_dict)
+                course_ids = list(class_dict.keys())
 
+                first_embed = True
+
+                for i in range(0, total_items, items_per_embed):
+
+                    batch_keys = course_ids[i:i + items_per_embed]
+                    embed = batch_embed_course(batch_keys, class_dict, first_embed)
+                    await msg.channel.send(embed=embed)
+                    first_embed = False
             else:
                 embed = discord.Embed(title=f"{input_course_code}", description="Sorry, we couldn't find this course.", color=0x00ff00)
                 await msg.channel.send(embed=embed)
-
         else:
             embed = discord.Embed(title=f"{input_course_code}", description="Sorry, we couldn't find this course.", color=0x00ff00)
             await msg.channel.send(embed=embed)
@@ -140,19 +139,52 @@ def run_discord_bot():
 
   client.run(TOKEN)
 
-def embed_course(course_id, course_data):
+def create_help_embed():
 
-        course_name = course_data[0]
-        course_description = course_data[1]
-        course_units = course_data[2]
-        course_prerequisites = course_data[3]
-        course_designation = course_data[4]
+    embed = discord.Embed(title="Axe Bot Help", description="List of available commands:", color=0x00ff00)
+    embed.add_field(name=f"{prefix}lookup <XXX000>", value="Look up a specific class", inline=False)
+    embed.add_field(name=f"{prefix}lookup <XXX>", value="Look up all classes for a specific subject", inline=False)
+    embed.add_field(name=f"{prefix}random", value="Find a random class", inline=False)
+    embed.add_field(name=f"{prefix}prereqs", value="Show course prerequisites (work in progress)", inline=False)
 
-        embed = discord.Embed(title=f"{course_name}", color=0x00ff00)
-        embed.add_field(name="Course ID:", value=course_id, inline=False)
-        embed.add_field(name="Course Description:", value=course_description, inline=False)
-        embed.add_field(name="Course Units:", value=course_units, inline=False)
-        embed.add_field(name="Course Designation:", value=course_designation, inline=False)
-        embed.add_field(name="Course Prerequisites:", value=course_prerequisites, inline=False)
+    return embed
 
-        return embed
+def create_subjects_embed(name_list):
+
+    embed = discord.Embed(title="NAU Subjects", description="List of available commands:", color=0x00ff00)
+    for name in name_list:
+        embed.add_field(name=name, value="", inline=False)
+
+    return embed
+
+def one_embed_course(course_id, course_data):
+
+    course_name = course_data[0]
+    course_description = course_data[1]
+    course_units = course_data[2]
+    course_prerequisites = course_data[3]
+    course_designation = course_data[4]
+
+    embed = discord.Embed(title=f"{course_name}", color=0x00ff00)
+    embed.add_field(name="Course ID:", value=course_id, inline=False)
+    embed.add_field(name="Course Description:", value=course_description, inline=False)
+    embed.add_field(name="Course Units:", value=course_units, inline=False)
+    embed.add_field(name="Course Designation:", value=course_designation, inline=False)
+    embed.add_field(name="Course Prerequisites:", value=course_prerequisites, inline=False)
+
+    return embed
+
+def batch_embed_course(batch_keys, class_dict, first_embed):
+
+    if first_embed == True:
+        embed = discord.Embed(title=f"{len(class_dict)} RESULTS FOUND", color=0x00ff00)
+
+    else:
+        embed = discord.Embed(title="", color=0x00ff00)
+
+    for course_id in batch_keys:
+
+        course_name = class_dict[course_id]
+        embed.add_field(name=course_name, value=f"CourseID: {course_id}", inline=False)
+
+    return embed
