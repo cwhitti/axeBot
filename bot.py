@@ -37,6 +37,9 @@ def run_discord_bot():
         await msg.channel.send("Listening!")
         return 0
 
+    if msg.content == f"{prefix}invite":
+        print("https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=274877966336&scope=bot")
+
     if msg.attachments: # Check if there are any attachments in the message
         for attachment in msg.attachments:
                 if attachment.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
@@ -67,7 +70,7 @@ def run_discord_bot():
         await msg.channel.send(embed=embed)
 
     if msg.content.startswith(f"{prefix}subjects"):
-        embed = create_subjects_embed()
+        embed = create_subjects_embed(name_list)
         await msg.channel.send(embed=embed)
 
     if msg.content.startswith(f"{prefix}lookup"):
@@ -142,18 +145,38 @@ def run_discord_bot():
 def create_help_embed():
 
     embed = discord.Embed(title="Axe Bot Help", description="List of available commands:", color=0x00ff00)
-    embed.add_field(name=f"{prefix}lookup <XXX000>", value="Look up a specific class", inline=False)
+    embed.add_field(name=f"{prefix}help", value="Show a list of commands", inline=False)
+    embed.add_field(name=f"{prefix}sujects", value="Look up all class subjects at NAU", inline=False)
     embed.add_field(name=f"{prefix}lookup <XXX>", value="Look up all classes for a specific subject", inline=False)
+    embed.add_field(name=f"{prefix}lookup <XXX000>", value="Look up a specific class", inline=False)
     embed.add_field(name=f"{prefix}random", value="Find a random class", inline=False)
     embed.add_field(name=f"{prefix}prereqs", value="Show course prerequisites (work in progress)", inline=False)
+    embed.set_footer(text="(!) This bot is not affiliated, sponsored, nor endorsed by NAU.")
 
     return embed
 
 def create_subjects_embed(name_list):
 
-    embed = discord.Embed(title="NAU Subjects", description="List of available commands:", color=0x00ff00)
+    embed = discord.Embed(title="NAU Subjects", description="List of available topics:", color=0x00ff00)
+
+    start_letter = 'A'
+    name_string = ""
+
     for name in name_list:
-        embed.add_field(name=name, value="", inline=False)
+
+        if name_string != "":
+
+            if name[0] == start_letter:
+                name_string += f", {name}"
+
+            else:
+                embed.add_field(name="", value=name_string, inline=False)
+                start_letter = name[0]
+                name_string = ""
+        else:
+            name_string = f"{name}"
+
+    embed.add_field(name="", value=name_string, inline=False)
 
     return embed
 
@@ -164,13 +187,17 @@ def one_embed_course(course_id, course_data):
     course_units = course_data[2]
     course_prerequisites = course_data[3]
     course_designation = course_data[4]
+    course_semesters = course_data[5]
+    course_link = f"https://catalog.nau.edu/Courses/course?courseId={course_id}&term=1237"
 
-    embed = discord.Embed(title=f"{course_name}", color=0x00ff00)
+    embed = discord.Embed(title=course_name, description="", color=0x00ff00)
     embed.add_field(name="Course ID:", value=course_id, inline=False)
     embed.add_field(name="Course Description:", value=course_description, inline=False)
     embed.add_field(name="Course Units:", value=course_units, inline=False)
+    embed.add_field(name="Course Semesters:", value=course_semesters, inline=False)
     embed.add_field(name="Course Designation:", value=course_designation, inline=False)
     embed.add_field(name="Course Prerequisites:", value=course_prerequisites, inline=False)
+    embed.add_field(name="", value=f"[Course Link]({course_link})", inline=False)
 
     return embed
 

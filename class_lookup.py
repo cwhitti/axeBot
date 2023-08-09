@@ -101,7 +101,7 @@ def get_class_dict(url_list): # Returns a dictionary of classes
 
     if url_list:
         for url in url_list:
-            course_name, course_description, course_units, course_prerequisites, course_designation = long_lookup(url)
+            course_name, course_description, course_units, course_prerequisites, course_designation, course_semesters = long_lookup(url)
 
             if course_name and course_description and course_units:
                 # Split the string using '&' as delimiter
@@ -112,7 +112,7 @@ def get_class_dict(url_list): # Returns a dictionary of classes
                     if part.startswith("courseId="):
                         course_id_long = part.split('=')[1]
                         course_id = course_id_long.split('&')[0]
-                        class_dict[course_id] = [course_name , course_description, course_units, course_prerequisites, course_designation]
+                        class_dict[course_id] = [course_name , course_description, course_units, course_prerequisites, course_designation, course_semesters]
 
     else:
         return None
@@ -167,6 +167,21 @@ def long_lookup(course_url):
         pass
         course_designation = "Unspecified"
 
+    # Find the small tag containing the term information
+    small_tag = search_soup.find('small')
+
+    # Find the <small> tag within the <h1> tag
+    small_tag = search_soup.find('h1', class_='mb-4 mt-4').find('small')
+
+    # Extract the text within the <small> tag
+    text = small_tag.get_text()
+
+    # Split the text using newline and colon as delimiters
+    lines = text.split('\n')
+    for line in lines:
+        if "Term" in line:
+            course_semesters = line.split(":")[1].strip()
+
     prereq_search = [
     "Prerequisite:",
     "Prerequisite or Corequisite:",
@@ -186,14 +201,14 @@ def long_lookup(course_url):
             pass
             course_prerequisites = None
 
-    return course_name, course_description, course_units, course_prerequisites, course_designation
+    return course_name, course_description, course_units, course_prerequisites, course_designation, course_semesters
 
 def random_class(): # generate a random class for funsies
 
     random_subject = random.choice(name_list)
     url_list = get_urls(random_subject, "")
     random_url = random.choice(url_list)
-    course_name, course_description, course_units, course_prerequisites, course_designation = long_lookup(random_url)
+    course_name, course_description, course_units, course_prerequisites, course_designation, course_semesters = long_lookup(random_url)
     class_dict = get_class_dict([random_url])
 
     return class_dict
