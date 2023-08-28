@@ -210,9 +210,8 @@ def batch_embed_course(batch_keys, class_dict, first_embed):
         embed = discord.Embed(title="", color=0x00ff00)
 
     for course_id in batch_keys:
-        course_link = f"https://catalog.nau.edu/Courses/course?courseId={course_id}&term=1237"
+
         course_name = class_dict[course_id]
-        desc = f"**[{course_name}]({course_link})**\n"
-        embed.add_field(name="", value=desc, inline=False)
+        embed.add_field(name=course_name, value=f"CourseID: {course_id}", inline=False)
 
     return embed
