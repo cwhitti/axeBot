@@ -67,7 +67,7 @@ def get_urls(subject, cat_nbr): #returns a list of URLS for a lookup
     url_list = []
 
     # URL of the search page
-    search_url = f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term=1237"
+    search_url = create_search_url(subject, cat_nbr)
 
     # Send an HTTP GET request to the search page
     search_response = requests.get(search_url)
@@ -85,7 +85,7 @@ def get_urls(subject, cat_nbr): #returns a list of URLS for a lookup
             course_link = dt_element.find("a")["href"]
 
             # Construct the full URL
-            course_url = f"https://catalog.nau.edu/Courses/{course_link}"
+            course_url = create_course_url(course_link)
 
             url_list.append(course_url)
 
@@ -124,7 +124,7 @@ def get_class_dict_short(subject, cat_nbr): # Returns a dict of simply course ID
     class_dict = {}
 
     # URL of the search page
-    search_url = f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term=1237"
+    search_url = create_search_url(subject, cat_nbr)
 
     # Send an HTTP GET request to the search page
     search_response = requests.get(search_url)
@@ -245,3 +245,9 @@ def prereq_tree(input_course_code):
 
     else:
         print("No exist")
+
+def create_search_url(subject, cat_nbr):
+    return f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term=1237"
+
+def create_course_url(course_link):
+    return f"https://catalog.nau.edu/Courses/{course_link}"
