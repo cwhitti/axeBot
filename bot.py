@@ -19,8 +19,6 @@ class axeBot:
         self.prefix = prefix
         self.color = color
         self.wait_limit = 5
-        self.test      = f"{self.prefix}hi"
-        self.init_help = f"{self.prefix}help"
 
 def run_discord_bot(axeBot = axeBot):
   axeBot = initialize_bot(axeBot)
@@ -42,6 +40,10 @@ def run_discord_bot(axeBot = axeBot):
     if msg.content == f"{axeBot.prefix}hi": # Testrun
         await msg.channel.send("Listening!")
         return 0
+
+    if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}end"):
+        print(f"{client.user} is now stopped.")
+        await client.close()
 
     if msg.content == f"{axeBot.prefix}invite":
         print("https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=274877966336&scope=bot")
