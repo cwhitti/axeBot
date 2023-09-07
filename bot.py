@@ -8,10 +8,6 @@ from bs4 import BeautifulSoup
 from class_lookup import *
 import math
 from classes import name_list
-load_dotenv()  # Load environment variables from .env file
-
-# Create a dictionary to store user cooldowns
-user_cooldowns = {}
 
 class axeBot:
     def __init__(self, token = None, prefix = None, color = None):
@@ -21,10 +17,13 @@ class axeBot:
         self.wait_limit = 5
 
 def run_discord_bot(axeBot = axeBot):
+  load_dotenv()  # Load environment variables from .env file
   axeBot = initialize_bot(axeBot)
   intents = discord.Intents.default()
   intents.message_content = True
   client = discord.Client(intents=intents)
+
+  user_cooldowns = {}
 
   #Show bot logged on successfully
   @client.event
