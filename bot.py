@@ -38,7 +38,7 @@ def run_discord_bot(axeBot = axeBot):
         return 0
 
     if msg.content == f"{axeBot.prefix}hi": # Testrun
-        await msg.channel.send("Listening!")
+        await msg.channel.send("Listening! 123!")
         return 0
 
     if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}end"):
@@ -241,7 +241,7 @@ def batch_embed_course(axeBot,batch_keys, class_dict, first_embed):
 def update_bot():
 
     try:
-        subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT, cwd='~/bots/axeBot')
+        subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT, cwd='')
         result = "Bot updated successfully!"
 
     except subprocess.CalledProcessError as e:
