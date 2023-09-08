@@ -242,7 +242,7 @@ def batch_embed_course(axeBot,batch_keys, class_dict, first_embed):
 def update_bot():
 
     try:
-        subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT, cwd='~/bots/axeBot')
+        subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT, cwd='/bots/axeBot')
         result = "Bot updated successfully!"
 
     except subprocess.CalledProcessError as e:
