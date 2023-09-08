@@ -50,7 +50,10 @@ def run_discord_bot(axeBot = axeBot):
         result = update_bot()
         embed = discord.Embed(title=f"", description=result, color=axeBot.color)
         await msg.channel.send(embed=embed)
-        client.close()
+        restart_bot()
+
+    if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}restart"):
+        restart_bot()
 
     if msg.content == f"{axeBot.prefix}invite":
         print("https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=274877966336&scope=bot")
@@ -253,4 +256,4 @@ def update_bot():
     return result
 
 def restart_bot():
-  os.execv(sys.executable, ['python'] + sys.argv)
+  os.execv("/usr/local/bin/python3.8", ["python"] + ["/root/bots/axeBot/run.py"])
