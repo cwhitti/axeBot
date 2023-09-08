@@ -237,7 +237,7 @@ def one_embed_course(axeBot,course_id, course_data):
 
     if len(course_description) > 1024:
         cont_message = "..."
-        end_index = len(course_description) - len(cont_message)
+        end_index = len(course_description) - len(cont_message) - 1
         course_description = course_description[0:end_index] + cont_message
 
     print(len(course_name))
