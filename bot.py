@@ -46,9 +46,11 @@ def run_discord_bot(axeBot = axeBot):
         await client.close()
 
     if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}update"):
+        client.loop.stop()
         result = update_bot()
         embed = discord.Embed(title=f"", description="result", color=axeBot.color)
         await msg.channel.send(embed=embed)
+        client.loop.run_forever()
 
     if msg.content == f"{axeBot.prefix}invite":
         print("https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=274877966336&scope=bot")
@@ -241,7 +243,7 @@ def batch_embed_course(axeBot,batch_keys, class_dict, first_embed):
 def update_bot():
 
     try:
-        subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT, cwd='')
+        subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT, cwd='~/bots/axeBot')
         result = "Bot updated successfully!"
 
     except subprocess.CalledProcessError as e:
