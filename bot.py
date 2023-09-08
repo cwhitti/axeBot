@@ -263,4 +263,7 @@ def update_bot():
         return False
 
 def restart_bot():
-  os.execv("/usr/bin/python3", ["python"] + ["/root/bots/axeBot/run.py"])
+    try:
+        os.execv("/usr/bin/python3", ["python"] + ["/root/bots/axeBot/run.py"])
+    except Exception as e:
+        print(f"Error: {e}")
