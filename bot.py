@@ -57,7 +57,7 @@ def run_discord_bot(axeBot = axeBot):
     if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}restart"):
         await(msg.channel.send("Restarting..."))
         await client.close()
-        print("restarting...")
+        print("restarting")
         restart_bot()
 
     if msg.content == f"{axeBot.prefix}invite":
