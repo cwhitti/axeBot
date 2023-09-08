@@ -46,7 +46,6 @@ def run_discord_bot(axeBot = axeBot):
         await client.close()
 
     if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}update"):
-        client.loop.stop()
         result = update_bot()
         embed = discord.Embed(title=f"", description="result", color=axeBot.color)
         await msg.channel.send(embed=embed)
