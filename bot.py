@@ -235,6 +235,9 @@ def one_embed_course(axeBot,course_id, course_data):
     course_semesters = course_data[5]
     course_url = create_course_url(f"course?courseId={course_id}&term=1237")
 
+    print(len(course_name))
+    print(len(course_description))
+
     embed = discord.Embed(title=course_name, description="", color=axeBot.color)
     embed.add_field(name="Course ID:", value=course_id, inline=False)
     embed.add_field(name="Course Description:", value=course_description, inline=False)
