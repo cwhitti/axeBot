@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import subprocess
 import os
+import sys
 import time
 from dotenv import load_dotenv
 import requests
@@ -49,8 +50,11 @@ def run_discord_bot(axeBot = axeBot):
         result = update_bot()
         embed = discord.Embed(title=f"", description=result, color=axeBot.color)
         await msg.channel.send(embed=embed)
-        await client.close()
-        run_discord_bot()
+        restart_bot()
+
+    if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}restart"):
+        await(msg.channel.send("Restarting..."))
+        restart_bot()
 
     if msg.content == f"{axeBot.prefix}invite":
         print("https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=274877966336&scope=bot")
@@ -251,3 +255,6 @@ def update_bot():
         result = f"Bot update failed: {error_message}"
 
     return result
+
+def restart_bot():
+  os.execv(sys.executable, ['python'] + sys.argv)
