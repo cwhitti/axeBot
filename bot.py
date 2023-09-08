@@ -38,7 +38,7 @@ def run_discord_bot(axeBot = axeBot):
         return 0
 
     if msg.content == f"{axeBot.prefix}hi": # Testrun
-        await msg.channel.send("Listening! 12344!")
+        await msg.channel.send("Listening!")
         return 0
 
     if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}end"):
