@@ -47,7 +47,7 @@ def run_discord_bot(axeBot = axeBot):
 
     if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}update"):
         result = update_bot()
-        embed = discord.Embed(title=f"", description="result", color=axeBot.color)
+        embed = discord.Embed(title=f"", description=result, color=axeBot.color)
         await msg.channel.send(embed=embed)
         client.loop.run_forever()
 
@@ -243,7 +243,7 @@ def update_bot():
 
     try:
         subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT, cwd='/root/bots/axeBot')
-        result = "Bot updated successfully!"
+        result = f"Bot updated successfully!"
 
     except subprocess.CalledProcessError as e:
         error_message = e.output.decode('utf-8')
