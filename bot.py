@@ -228,7 +228,7 @@ def create_subjects_embed(axeBot,name_list):
 def one_embed_course(axeBot,course_id, course_data):
 
     course_name = course_data[0]
-    course_description = course_data[1][0:1023]
+    course_description = course_data[1]
     course_units = course_data[2]
     course_prerequisites = course_data[3]
     course_designation = course_data[4]
