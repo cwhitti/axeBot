@@ -46,13 +46,20 @@ def run_discord_bot(axeBot = axeBot):
         print(f"{client.user} is now stopped.")
         await client.close()
 
-    if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}update"):
-        result = update_bot()
-        embed = discord.Embed(title=f"", description=result, color=axeBot.color)
-        await msg.channel.send(embed=embed)
-        restart_bot()
+    if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}pull"):
+        if update_bot():
+            embed = discord.Embed(title=f"", description="Bot updated...", color=axeBot.color)
+            await msg.channel.send(embed=embed)
+            embed = discord.Embed(title=f"", description="Restarting...", color=axeBot.color)
+            await msg.channel.send(embed=embed)
+            restart_bot()
+        else:
+            embed = discord.Embed(title=f"", description="Bot unable to be updated", color=axeBot.color)
+            await msg.channel.send(embed=embed)
 
     if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}restart"):
+        embed = discord.Embed(title=f"", description="Restarting...", color=axeBot.color)
+        await msg.channel.send(embed=embed)
         restart_bot()
 
     if msg.content == f"{axeBot.prefix}invite":
@@ -247,13 +254,12 @@ def update_bot():
 
     try:
         subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT, cwd='/root/bots/axeBot')
-        result = f"Bot updated successfully!"
+        return True
 
     except subprocess.CalledProcessError as e:
         error_message = e.output.decode('utf-8')
-        result = f"Bot update failed: {error_message}"
-
-    return result
+        print(f"Error: {error_message}")
+        return False
 
 def restart_bot():
   os.execv("/usr/bin/python3", ["python"] + ["/root/bots/axeBot/run.py"])
