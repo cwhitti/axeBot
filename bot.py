@@ -17,6 +17,7 @@ class axeBot:
         self.prefix = prefix
         self.color = color
         self.wait_limit = 5
+        self.owner = 343857226982883339
 
 def run_discord_bot(axeBot = axeBot):
   load_dotenv()  # Load environment variables from .env file
@@ -42,11 +43,11 @@ def run_discord_bot(axeBot = axeBot):
         await msg.channel.send("Listening! 123")
         return 0
 
-    if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}end"):
+    if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}end"):
         print(f"{client.user} is now stopped.")
         await client.close()
 
-    if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}pull"):
+    if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}pull"):
         if update_bot():
             embed = discord.Embed(title=f"", description="Bot updated...", color=axeBot.color)
             await msg.channel.send(embed=embed)
@@ -58,7 +59,7 @@ def run_discord_bot(axeBot = axeBot):
             embed = discord.Embed(title=f"", description="Bot unable to be updated", color=axeBot.color)
             await msg.channel.send(embed=embed)
 
-    if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}restart"):
+    if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}restart"):
         embed = discord.Embed(title=f"", description="Restarting...", color=axeBot.color)
         await msg.channel.send(embed=embed)
         restart_bot()
