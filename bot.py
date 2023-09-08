@@ -256,4 +256,4 @@ def update_bot():
     return result
 
 def restart_bot():
-  os.execv("/usr/local/bin/python3.8", ["python"] + ["/root/bots/axeBot/run.py"])
+  os.execv("/usr/bin/python3", ["python"] + ["/root/bots/axeBot/run.py"])
