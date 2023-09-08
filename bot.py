@@ -39,7 +39,7 @@ def run_discord_bot(axeBot = axeBot):
         return 0
 
     if msg.content == f"{axeBot.prefix}hi": # Testrun
-        await msg.channel.send("Listening! 111111")
+        await msg.channel.send("Listening! lookie!")
         return 0
 
     if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}end"):
@@ -50,10 +50,14 @@ def run_discord_bot(axeBot = axeBot):
         result = update_bot()
         embed = discord.Embed(title=f"", description=result, color=axeBot.color)
         await msg.channel.send(embed=embed)
+        await client.close()
+        print("restarting...")
         restart_bot()
 
     if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}restart"):
         await(msg.channel.send("Restarting..."))
+        await client.close()
+        print("restarting...")
         restart_bot()
 
     if msg.content == f"{axeBot.prefix}invite":
