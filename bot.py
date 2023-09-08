@@ -173,7 +173,9 @@ def run_discord_bot(axeBot = axeBot):
             await msg.channel.send(embed=embed)
 
     except Exception as e:
+        raise e
         embed = discord.Embed(title="Error", description=f"{e}", color=axeBot.color)
+        await msg.channel.send(embed=embed)
 
   client.run(axeBot.token)
 
