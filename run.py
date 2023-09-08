@@ -1,4 +1,6 @@
 import bot
+import os
+import sys
 
 def restart_bot():
   os.execv(sys.executable, ['python'] + sys.argv)
