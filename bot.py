@@ -38,7 +38,7 @@ def run_discord_bot(axeBot = axeBot):
         return 0
 
     if msg.content == f"{axeBot.prefix}hi": # Testrun
-        await msg.channel.send("Listening!")
+        await msg.channel.send("Listening! 123")
         return 0
 
     if (msg.author.id == 343857226982883339) and (msg.content == f"{axeBot.prefix}end"):
@@ -49,7 +49,8 @@ def run_discord_bot(axeBot = axeBot):
         result = update_bot()
         embed = discord.Embed(title=f"", description=result, color=axeBot.color)
         await msg.channel.send(embed=embed)
-        client.loop.run_forever()
+        await client.close()
+        run_discord_bot()
 
     if msg.content == f"{axeBot.prefix}invite":
         print("https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=274877966336&scope=bot")
