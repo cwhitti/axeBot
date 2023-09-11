@@ -87,6 +87,7 @@ def run_discord_bot(axeBot = axeBot):
                 description=invite,
                 color=axeBot.color)
             embed.set_footer(text="Thank you for wanting to invite me")
+            await msg.channel.send(embed=embed)
 
         if msg.attachments: # Check if there are any attachments in the message
             for attachment in msg.attachments:
