@@ -18,6 +18,9 @@ class axeBot:
         self.color = color
         self.wait_limit = 5
         self.owner = 343857226982883339
+    def get_invite(self):
+        i = "https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=274877966336&scope=bot"
+        return i
 
 def run_discord_bot(axeBot = axeBot):
   load_dotenv()  # Load environment variables from .env file
@@ -78,7 +81,12 @@ def run_discord_bot(axeBot = axeBot):
             restart_bot()
 
         if msg.content == f"{axeBot.prefix}invite":
-            print("https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=274877966336&scope=bot")
+
+            invite = axeBot.get_invite()
+            embed = discord.Embed(title=f"Invite me!",
+                description=invite,
+                color=axeBot.color)
+            embed.set_footer(text="Thank you for wanting to invite me")
 
         if msg.attachments: # Check if there are any attachments in the message
             for attachment in msg.attachments:
