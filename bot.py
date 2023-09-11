@@ -105,9 +105,8 @@ def run_discord_bot(axeBot = axeBot):
 
                 class_dict = random_class()
                 course_id_list = list(class_dict.keys())
-                course_id = course_id_list[0]
 
-                embed = one_embed_course(axeBot, course_id, class_dict[course_id])
+                embed = one_embed_course(axeBot, course_id_list[0], class_dict[course_id])
                 await msg.channel.send(embed=embed)
 
         if msg.content.startswith(f"{axeBot.prefix}help"):
