@@ -19,11 +19,10 @@ class axeBot:
         self.wait_limit = 5
         self.owner = 343857226982883339
     def get_invite(self):
-        i = "https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=274877966336&scope=bot"
+        i = "https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=117824&scope=bot"
         return i
 
 def run_discord_bot(axeBot = axeBot):
-  load_dotenv()  # Load environment variables from .env file
   axeBot = initialize_bot(axeBot)
   intents = discord.Intents.default()
   intents.message_content = True
@@ -210,6 +209,7 @@ def run_discord_bot(axeBot = axeBot):
   client.run(axeBot.token)
 
 def initialize_bot(axeBot):
+    load_dotenv()  # Load environment variables from .env file
     axeBot = axeBot()
     axeBot.token = os.getenv('DISCORD_TOKEN')
     axeBot.prefix = os.getenv('PREFIX')
