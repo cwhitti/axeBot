@@ -42,7 +42,7 @@ def run_discord_bot(axeBot = axeBot):
             return 0
 
         if msg.content == f"{axeBot.prefix}hi": # Testrun
-            await msg.channel.send("Listening! 123")
+            await msg.channel.send("Listening!")
             return 0
 
         if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}end"):
