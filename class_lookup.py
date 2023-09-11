@@ -7,7 +7,7 @@ def get_sub_nbr(input_course_code):
 
     lower_course_code = input_course_code.replace(" ","")
 
-    end_signifiers = ['H','h','L','l','W','w','R','r']
+    end_signifiers = ['H','h','L','l','W','w','R','r','c','C']
 
     course_code = lower_course_code.upper()
 
@@ -66,14 +66,10 @@ def get_urls(subject, cat_nbr): #returns a list of URLS for a lookup
 
     url_list = []
 
-    # URL of the search page
     search_url = create_search_url(subject, cat_nbr)
 
-    # Send an HTTP GET request to the search page
-    search_response = requests.get(search_url)
-
     # Parse the search page HTML
-    search_soup = BeautifulSoup(search_response.content, "html.parser")
+    search_soup = get_search_soup(search_url)
 
     try:
         # Find the <dt> element with class "result-item"
@@ -95,13 +91,29 @@ def get_urls(subject, cat_nbr): #returns a list of URLS for a lookup
 
     return url_list
 
+def get_search_soup(search_url):
+
+    # Send an HTTP GET request to the search page
+    search_response = requests.get(search_url)
+
+    # Parse the search page HTML
+    search_soup = BeautifulSoup(search_response.content, "html.parser")
+
+    return search_soup
+
 def get_class_dict(url_list): # Returns a dictionary of classes
 
     class_dict = {}
 
     if url_list:
         for url in url_list:
-            course_name, course_description, course_units, course_prerequisites, course_designation, course_semesters = long_lookup(url)
+            search_soup = get_search_soup(url)
+            course_name = get_course_name(search_soup)
+            course_description = get_course_description(search_soup)
+            course_units = get_course_units(search_soup)
+            course_prerequisites = get_course_prereqs(search_soup)
+            course_designation = get_course_designation(search_soup)
+            course_semesters = get_course_semesters(search_soup)
 
             if course_name and course_description and course_units:
                 # Split the string using '&' as delimiter
@@ -112,7 +124,12 @@ def get_class_dict(url_list): # Returns a dictionary of classes
                     if part.startswith("courseId="):
                         course_id_long = part.split('=')[1]
                         course_id = course_id_long.split('&')[0]
-                        class_dict[course_id] = [course_name , course_description, course_units, course_prerequisites, course_designation, course_semesters]
+                        class_dict[course_id] = [ course_name,
+                                                    course_description,
+                                                    course_units,
+                                                    course_prerequisites,
+                                                    course_designation,
+                                                    course_semesters ]
 
     else:
         return None
@@ -126,11 +143,8 @@ def get_class_dict_short(subject, cat_nbr): # Returns a dict of simply course ID
     # URL of the search page
     search_url = create_search_url(subject, cat_nbr)
 
-    # Send an HTTP GET request to the search page
-    search_response = requests.get(search_url)
-
     # Parse the course page HTML
-    search_soup = BeautifulSoup(search_response.content, "html.parser")
+    search_soup = get_search_soup(search_url)
 
     # Find all <a> tags with course details links
     course_links = search_soup.find_all('a', title='view course details')
@@ -143,45 +157,24 @@ def get_class_dict_short(subject, cat_nbr): # Returns a dict of simply course ID
 
     return class_dict
 
-def long_lookup(course_url):
+def get_course_name(search_soup):
+    return search_soup.find("h2").text
 
-    # Send an HTTP GET request to the course page
-    search_response = requests.get(course_url)
-
-    # Parse the course page HTML
-    search_soup = BeautifulSoup(search_response.content, "html.parser")
-
-    # Find the <h2> element and its text
-    course_name = search_soup.find("h2").text
-
+def get_course_description(search_soup):
     # Find the <strong> element with the text "Description:"
     course_description = search_soup.find("strong", text="Description:").find_next_sibling(text=True).strip()
 
-    # Find the <strong> element with the text "Units:"
-    course_units = search_soup.find("strong", text="Units:").find_next_sibling(text=True).strip()
+    if len(course_description) > 1024:
+        cont_message = ". . ."
+        end_index = 1024 - len(cont_message)
+        course_description = course_description[0:end_index] + cont_message
 
-    try:
-        course_designation = search_soup.find("strong", text="Requirement Designation:").find_next_sibling(text=True).strip()
+    return course_description
 
-    except Exception as e:
-        pass
-        course_designation = "Unspecified"
+def get_course_units(search_soup):
+    return search_soup.find("strong", text="Units:").find_next_sibling(text=True).strip()
 
-    # Find the small tag containing the term information
-    small_tag = search_soup.find('small')
-
-    # Find the <small> tag within the <h1> tag
-    small_tag = search_soup.find('h1', class_='mb-4 mt-4').find('small')
-
-    # Extract the text within the <small> tag
-    text = small_tag.get_text()
-
-    # Split the text using newline and colon as delimiters
-    lines = text.split('\n')
-    for line in lines:
-        if "Term" in line:
-            course_semesters = line.split(":")[1].strip()
-
+def get_course_prereqs(search_soup):
     prereq_search = [
     "Prerequisite:",
     "Prerequisite or Corequisite:",
@@ -201,14 +194,42 @@ def long_lookup(course_url):
             pass
             course_prerequisites = None
 
-    return course_name, course_description, course_units, course_prerequisites, course_designation, course_semesters
+    return course_prerequisites
+
+def get_course_designation(search_soup):
+    try:
+        course_designation = search_soup.find("strong", text="Requirement Designation:").find_next_sibling(text=True).strip()
+
+    except Exception as e:
+        pass
+        course_designation = "Unspecified"
+
+    return course_designation
+
+def get_course_semesters(search_soup):
+
+    # Find the small tag containing the term information
+    small_tag = search_soup.find('small')
+
+    # Find the <small> tag within the <h1> tag
+    small_tag = search_soup.find('h1', class_='mb-4 mt-4').find('small')
+
+    # Extract the text within the <small> tag
+    text = small_tag.get_text()
+
+    # Split the text using newline and colon as delimiters
+    lines = text.split('\n')
+    for line in lines:
+        if "Term" in line:
+            course_semesters = line.split(":")[1].strip()
+
+    return course_semesters
 
 def random_class(): # generate a random class for funsies
 
     random_subject = random.choice(name_list)
     url_list = get_urls(random_subject, "")
     random_url = random.choice(url_list)
-    course_name, course_description, course_units, course_prerequisites, course_designation, course_semesters = long_lookup(random_url)
     class_dict = get_class_dict([random_url])
 
     return class_dict
@@ -225,11 +246,8 @@ def prereq_tree(input_course_code):
         # FOR EVERY PREREQ, CHECK THOSE PREREQUS
         # KEEP THEM IN A LIST
 
-        # Send an HTTP GET request to the course page
-        search_response = requests.get(course_url)
-
         # Parse the course page HTML
-        search_soup = BeautifulSoup(search_response.content, "html.parser")
+        search_soup = get_search_soup(search_url)
 
         prereq_search = [
         "Prerequisite:",
