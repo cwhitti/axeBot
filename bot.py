@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import subprocess
+import datetime
 import os
 import sys
 import time
@@ -18,9 +19,21 @@ class axeBot:
         self.color = color
         self.wait_limit = 5
         self.owner = 343857226982883339
+
     def get_invite(self):
         i = "https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=117824&scope=bot"
         return i
+
+    def log_command(self, msg, total_items):
+
+        day = datetime.datetime.now()
+        user_id = msg.author.id
+        guild_id = msg.guild.id
+        command = msg.content
+
+        f = open("stats.csv","a")
+        f.write(f"{day},{user_id},{guild_id},{command},{total_items}\n")
+        f.close()
 
 def run_discord_bot(axeBot = axeBot):
   axeBot = initialize_bot(axeBot)
@@ -38,174 +51,178 @@ def run_discord_bot(axeBot = axeBot):
   @client.event
   async def on_message(msg):
 
-    try:
+    if msg.author == client.user: # Ensure bot doesnt listen to self
+        return 0
 
-        if msg.author == client.user: # Ensure bot doesnt listen to self
-            return 0
+    if msg.content == f"{axeBot.prefix}hi": # Testrun
+        await msg.channel.send("Listening!")
+        return 0
 
-        if msg.content == f"{axeBot.prefix}hi": # Testrun
-            await msg.channel.send("Listening!")
-            return 0
+    if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}end"):
+        embed = discord.Embed(title=f"",
+            description="Ending...",
+            color=axeBot.color)
+        await msg.channel.send(embed=embed)
+        with open("times.csv", "a") as f:
+            f.write(f"{time}\n")
+            f.close()
+        await client.close()
 
-        if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}end"):
+    if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}update"):
+        if update_bot():
             embed = discord.Embed(title=f"",
-                description="Ending...",
+                description="Bot updated...",
                 color=axeBot.color)
             await msg.channel.send(embed=embed)
-            await client.close()
-
-        if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}update"):
-            if update_bot():
-                embed = discord.Embed(title=f"",
-                    description="Bot updated...",
-                    color=axeBot.color)
-                await msg.channel.send(embed=embed)
-                time.sleep(1)
-                embed = discord.Embed(title=f"",
-                    description="Restarting...",
-                    color=axeBot.color)
-                await msg.channel.send(embed=embed)
-                restart_bot()
-            else:
-                embed = discord.Embed(title=f"",
-                    description="Bot unable to be updated",
-                    color=axeBot.color)
-                await msg.channel.send(embed=embed)
-
-        if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}restart"):
+            time.sleep(1)
             embed = discord.Embed(title=f"",
                 description="Restarting...",
                 color=axeBot.color)
             await msg.channel.send(embed=embed)
             restart_bot()
-
-        if msg.content == f"{axeBot.prefix}invite":
-
-            invite = axeBot.get_invite()
-            embed = discord.Embed(title=f"Invite me!",
-                description=invite,
+        else:
+            embed = discord.Embed(title=f"",
+                description="Bot unable to be updated",
                 color=axeBot.color)
-            embed.set_footer(text="Thank you for wanting to invite me")
             await msg.channel.send(embed=embed)
 
-        if msg.attachments: # Check if there are any attachments in the message
-            for attachment in msg.attachments:
-                    if attachment.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
-                        return 0
+    if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}restart"):
+        embed = discord.Embed(title=f"",
+            description="Restarting...",
+            color=axeBot.color)
+        await msg.channel.send(embed=embed)
+        restart_bot()
 
-        if msg.content.startswith(f"{axeBot.prefix}random"): # Gen random class
-            async with msg.channel.typing():
-                # Check if the user is on cooldown
-                if check_cooldown(axeBot, msg, user_cooldowns):  # 5 seconds cooldown
-                    embed = discord.Embed(title=f"Rate Limit!",
-                        description="Please wait another few seconds before using this command.",
-                        color=axeBot.color)
-                    await msg.channel.send(embed=embed)
+    if msg.content == f"{axeBot.prefix}invite":
+
+        invite = axeBot.get_invite()
+        embed = discord.Embed(title=f"Invite me!",
+            description=invite,
+            color=axeBot.color)
+        embed.set_footer(text="Thank you for wanting to invite me")
+        await msg.channel.send(embed=embed)
+
+    if msg.attachments: # Check if there are any attachments in the message
+        for attachment in msg.attachments:
+                if attachment.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
                     return 0
 
-                class_dict = random_class()
-                course_id_list = list(class_dict.keys())
+    if msg.content.startswith(f"{axeBot.prefix}random"): # Gen random class
+        async with msg.channel.typing():
+            # Check if the user is on cooldown
+            if check_cooldown(axeBot, msg, user_cooldowns):  # 5 seconds cooldown
+                embed = discord.Embed(title=f"Rate Limit!",
+                    description="Please wait another few seconds before using this command.",
+                    color=axeBot.color)
+                await msg.channel.send(embed=embed)
+                return 0
 
-                embed = one_embed_course(axeBot, course_id_list[0], class_dict[course_id])
+            class_dict = random_class()
+            course_id_list = list(class_dict.keys())
+
+            embed = one_embed_course(axeBot, course_id_list[0], class_dict[course_id])
+            await msg.channel.send(embed=embed)
+
+    if msg.content.startswith(f"{axeBot.prefix}help"):
+        async with msg.channel.typing():
+            embed = create_help_embed(axeBot)
+            await msg.channel.send(embed=embed)
+
+    if msg.content.startswith(f"{axeBot.prefix}subjects"):
+        async with msg.channel.typing():
+            embed = create_subjects_embed(axeBot, name_list)
+            await msg.channel.send(embed=embed)
+
+    if msg.content.startswith(f"{axeBot.prefix}lookup"):
+        async with msg.channel.typing():
+
+            # Check if the user is on cooldown
+            if check_cooldown(axeBot, msg, user_cooldowns):  # 5 seconds cooldown
+                embed = discord.Embed(title=f"Rate Limit!",
+                    description="Please wait another few seconds before using this command.",
+                    color=axeBot.color)
                 await msg.channel.send(embed=embed)
 
-        if msg.content.startswith(f"{axeBot.prefix}help"):
-            async with msg.channel.typing():
-                embed = create_help_embed(axeBot)
+                return 0
+
+            args = msg.content.split()
+            input_course_code = ""
+
+            if len(args) == 1:
+                embed = discord.Embed(title=f"Sorry, didn't catch that!",
+                    description=f"You can look up a class by using {axeBot.prefix}lookup <XXX000>",
+                    color=axeBot.color)
                 await msg.channel.send(embed=embed)
+                return 0
 
-        if msg.content.startswith(f"{axeBot.prefix}subjects"):
-            async with msg.channel.typing():
-                embed = create_subjects_embed(axeBot, name_list)
-                await msg.channel.send(embed=embed)
+            for i in range(1, len(args)):
+                input_course_code += args[i]
 
-        if msg.content.startswith(f"{axeBot.prefix}lookup"):
-            async with msg.channel.typing():
+            subject, cat_nbr = get_sub_nbr(input_course_code)
+            url_list = get_urls(subject, cat_nbr)
 
-                # Check if the user is on cooldown
-                if check_cooldown(axeBot, msg, user_cooldowns):  # 5 seconds cooldown
-                    embed = discord.Embed(title=f"Rate Limit!",
-                        description="Please wait another few seconds before using this command.",
-                        color=axeBot.color)
-                    await msg.channel.send(embed=embed)
+            # Embed the full class
+            if len(url_list) <= 5:
 
-                    return 0
+                class_dict = get_class_dict(url_list)
 
-                args = msg.content.split()
-                input_course_code = ""
-
-                if len(args) == 1:
-                    embed = discord.Embed(title=f"Sorry, didn't catch that!",
-                        description=f"You can look up a class by using {axeBot.prefix}lookup <XXX000>",
-                        color=axeBot.color)
-                    await msg.channel.send(embed=embed)
-                    return 0
-
-                for i in range(1, len(args)):
-                    input_course_code += args[i]
-
-                subject, cat_nbr = get_sub_nbr(input_course_code)
-                url_list = get_urls(subject, cat_nbr)
-
-                # Embed the full class
-                if len(url_list) <= 5:
-
-                    class_dict = get_class_dict(url_list)
-
-                    if class_dict:
-                        for course_id, course_data in class_dict.items():
-                            #embed course
-                            embed = one_embed_course(axeBot, course_id, course_data)
-                            await msg.channel.send(embed=embed)
-
-                    else:
-                        embed = discord.Embed(title=f"{input_course_code}",
-                            description="Sorry, we couldn't find this course.",
-                            color=axeBot.color)
+                if class_dict:
+                    total_items = len(class_dict)
+                    axeBot.log_command(msg, total_items)
+                    for course_id, course_data in class_dict.items():
+                        #embed course
+                        embed = one_embed_course(axeBot, course_id, course_data)
                         await msg.channel.send(embed=embed)
 
-                # shows a list of names to look up
-                elif len(url_list) > 5:
-                    # just grab the name and class ID
-                    class_dict = get_class_dict_short(subject, cat_nbr)
-
-                    if class_dict:
-                        items_per_embed = 25 # discord embed limit
-                        total_items = len(class_dict)
-                        course_ids = list(class_dict.keys())
-
-                        first_embed = True
-
-                        for i in range(0, total_items, items_per_embed):
-                            batch_keys = course_ids[i:i + items_per_embed]
-                            embed = batch_embed_course(axeBot, batch_keys, class_dict, first_embed)
-                            await msg.channel.send(embed=embed)
-                            first_embed = False
-                    else:
-                        embed = discord.Embed(title=f"{input_course_code}",
-                            description="Sorry, we couldn't find this course.",
-                            color=axeBot.color)
-                        await msg.channel.send(embed=embed)
                 else:
                     embed = discord.Embed(title=f"{input_course_code}",
                         description="Sorry, we couldn't find this course.",
                         color=axeBot.color)
                     await msg.channel.send(embed=embed)
 
-        if msg.content.startswith(f"{axeBot.prefix}prereqs"):
-            embed = discord.Embed(title=f"Course Prereqs",
-                description="This feature is still in progress.",
-                color=axeBot.color)
-            await msg.channel.send(embed=embed)
+            # shows a list of names to look up
+            elif len(url_list) > 5:
+                # just grab the name and class ID
+                class_dict = get_class_dict_short(subject, cat_nbr)
 
-    except Exception as e:
-        raise e
-        embed = discord.Embed(title="Error",
-            description=f"{e}",
+                if class_dict:
+                    total_items = len(class_dict)
+                    axeBot.log_command(msg, total_items)
+                    items_per_embed = 25 # discord embed limit
+                    course_ids = list(class_dict.keys())
+
+                    first_embed = True
+
+                    for i in range(0, total_items, items_per_embed):
+                        batch_keys = course_ids[i:i + items_per_embed]
+                        embed = batch_embed_course(axeBot, batch_keys, class_dict, first_embed)
+                        await msg.channel.send(embed=embed)
+                        first_embed = False
+                else:
+                    embed = discord.Embed(title=f"{input_course_code}",
+                        description="Sorry, we couldn't find this course.",
+                        color=axeBot.color)
+                    await msg.channel.send(embed=embed)
+            else:
+                embed = discord.Embed(title=f"{input_course_code}",
+                    description="Sorry, we couldn't find this course.",
+                    color=axeBot.color)
+                await msg.channel.send(embed=embed)
+
+    if msg.content.startswith(f"{axeBot.prefix}prereqs"):
+        embed = discord.Embed(title=f"Course Prereqs",
+            description="This feature is still in progress.",
             color=axeBot.color)
         await msg.channel.send(embed=embed)
 
-  client.run(axeBot.token)
+  try:
+      client.run(axeBot.token)
+
+  except Exception as e:
+      with open("times.csv","a") as f:
+          time = time.time()
+          f.write(f"{time}\n")
+          f.close()
 
 def initialize_bot(axeBot):
     load_dotenv()  # Load environment variables from .env file
