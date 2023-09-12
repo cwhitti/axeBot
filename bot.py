@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import subprocess
+import pandas as pd
 import datetime
 import os
 import sys
@@ -24,7 +25,7 @@ class axeBot:
         i = "https://discord.com/api/oauth2/authorize?client_id=1137314880697937940&permissions=117824&scope=bot"
         return i
 
-    def log_command(self, msg, total_items):
+    def log_command(self, msg, total_items = 0):
 
         day = datetime.datetime.now()
         user_id = msg.author.id
@@ -34,6 +35,7 @@ class axeBot:
         f = open("stats.csv","a")
         f.write(f"{day},{user_id},{guild_id},{command},{total_items}\n")
         f.close()
+
 
 def run_discord_bot(axeBot = axeBot):
   axeBot = initialize_bot(axeBot)
@@ -59,16 +61,15 @@ def run_discord_bot(axeBot = axeBot):
         return 0
 
     if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}end"):
+        axeBot.log_command(msg)
         embed = discord.Embed(title=f"",
             description="Ending...",
             color=axeBot.color)
         await msg.channel.send(embed=embed)
-        with open("times.csv", "a") as f:
-            f.write(f"{time}\n")
-            f.close()
         await client.close()
 
     if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}update"):
+        axeBot.log_command(msg)
         if update_bot():
             embed = discord.Embed(title=f"",
                 description="Bot updated...",
@@ -87,6 +88,7 @@ def run_discord_bot(axeBot = axeBot):
             await msg.channel.send(embed=embed)
 
     if (msg.author.id == axeBot.owner) and (msg.content == f"{axeBot.prefix}restart"):
+        axeBot.log_command(msg)
         embed = discord.Embed(title=f"",
             description="Restarting...",
             color=axeBot.color)
@@ -94,7 +96,7 @@ def run_discord_bot(axeBot = axeBot):
         restart_bot()
 
     if msg.content == f"{axeBot.prefix}invite":
-
+        axeBot.log_command(msg)
         invite = axeBot.get_invite()
         embed = discord.Embed(title=f"Invite me!",
             description=invite,
@@ -118,24 +120,31 @@ def run_discord_bot(axeBot = axeBot):
                 return 0
 
             class_dict = random_class()
-            course_id_list = list(class_dict.keys())
+            if class_dict:
+                axeBot.log_command(msg, 1)
+                course_id_list = list(class_dict.keys())
+                course_id = course_id_list[0]
 
-            embed = one_embed_course(axeBot, course_id_list[0], class_dict[course_id])
-            await msg.channel.send(embed=embed)
+                embed = one_embed_course(axeBot, course_id, class_dict[course_id])
+                await msg.channel.send(embed=embed)
+            else:
+                embed = discord.Embed(title=f"Hmm, something went wrong...")
+                await msg.channel.send(embed=embed)
 
     if msg.content.startswith(f"{axeBot.prefix}help"):
+        axeBot.log_command(msg)
         async with msg.channel.typing():
             embed = create_help_embed(axeBot)
             await msg.channel.send(embed=embed)
 
     if msg.content.startswith(f"{axeBot.prefix}subjects"):
+        axeBot.log_command(msg)
         async with msg.channel.typing():
             embed = create_subjects_embed(axeBot, name_list)
             await msg.channel.send(embed=embed)
 
     if msg.content.startswith(f"{axeBot.prefix}lookup"):
         async with msg.channel.typing():
-
             # Check if the user is on cooldown
             if check_cooldown(axeBot, msg, user_cooldowns):  # 5 seconds cooldown
                 embed = discord.Embed(title=f"Rate Limit!",
@@ -167,8 +176,7 @@ def run_discord_bot(axeBot = axeBot):
                 class_dict = get_class_dict(url_list)
 
                 if class_dict:
-                    total_items = len(class_dict)
-                    axeBot.log_command(msg, total_items)
+                    axeBot.log_command(msg, len(class_dict))
                     for course_id, course_data in class_dict.items():
                         #embed course
                         embed = one_embed_course(axeBot, course_id, course_data)
@@ -187,7 +195,7 @@ def run_discord_bot(axeBot = axeBot):
 
                 if class_dict:
                     total_items = len(class_dict)
-                    axeBot.log_command(msg, total_items)
+                    axeBot.log_command(msg, len(class_dict))
                     items_per_embed = 25 # discord embed limit
                     course_ids = list(class_dict.keys())
 
@@ -242,7 +250,7 @@ def create_help_embed(axeBot):
         value="Show a list of commands",
         inline=False)
 
-    embed.add_field(name=f"{axeBot.prefix}sujects",
+    embed.add_field(name=f"{axeBot.prefix}subjects",
         value="Look up all class subjects at NAU",
         inline=False)
 
