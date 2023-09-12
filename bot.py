@@ -9,6 +9,7 @@ from classes import name_list
 from datetime import date
 from discord.ext import commands
 from dotenv import load_dotenv
+import pandas as pd
 
 class axeBot:
     def __init__(self, token = None, prefix = None, color = None):
@@ -34,6 +35,46 @@ class axeBot:
 
         with open("stats.csv", "a") as f:
             f.write(f"{day},{current_time},{user_name},{user_id},{guild_id},{command},{total_items}\n")
+
+    def create_stats_embed(self):
+        data = self.read_csv_file()
+
+        # calculate values
+        total_commands = len(data)
+        unique_users = self.get_unique_users(data)
+        days_since_first_entry = self.get_total_days(data)
+
+        embed = discord.Embed(title="Stats for axeBot",
+            description = f"**Total commands executed:** {total_commands}\n\
+            **Total users:** {unique_users}\n\
+            **Days since launch**: {days_since_first_entry}",
+            color = self.color)
+
+        return embed
+
+    def read_csv_file(self):
+        data = pd.read_csv('stats.csv')
+        return data
+
+    def get_unique_users(self, data):
+        # total number of users
+        unique_users = data["user_id"].nunique()
+        return unique_users
+
+    def get_total_days(self,data):
+
+        # Convert the "day" column to a datetime object
+        data['day'] = pd.to_datetime(data['day'])
+
+        # Find the last date in the 'day' column (maximum date)
+        first_date = data['day'].min()
+
+        last_date = data['day'].max()
+
+        days_passed = (last_date - first_date).days
+        # days since launch
+        return days_passed
+
 
 def run_discord_bot(axeBot = axeBot):
   axeBot = initialize_bot(axeBot)
@@ -106,6 +147,10 @@ def run_discord_bot(axeBot = axeBot):
         for attachment in msg.attachments:
                 if attachment.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
                     return 0
+
+    if msg.content.startswith(f"{axeBot.prefix}stats"):
+        embed = axeBot.create_stats_embed()
+        await msg.channel.send(embed=embed)
 
     if msg.content.startswith(f"{axeBot.prefix}random"): # Gen random class
         async with msg.channel.typing():
@@ -266,6 +311,10 @@ def create_help_embed(axeBot):
 
     embed.add_field(name=f"{axeBot.prefix}prereqs",
         value="Show course prerequisites (work in progress)",
+        inline=False)
+
+    embed.add_field(name=f"{axeBot.prefix}stats",
+        value="See the stats of the bot",
         inline=False)
 
     embed.set_footer(text="(!) This bot is not affiliated, sponsored, nor endorsed by NAU.")
