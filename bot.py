@@ -28,13 +28,12 @@ class axeBot:
         t = time.localtime()
         current_time = time.strftime("%H:%M:%S", t)
         user_id = msg.author.id
+        user_name = msg.author.display_name
         guild_id = msg.guild.id
         command = msg.content
 
-        f = open("stats.csv","a")
-        f.write(f"{day},{current_time},{user_id},{guild_id},{command},{total_items}\n")
-        f.close()
-
+        with open("stats.csv", "a") as f:
+            f.write(f"{day},{current_time},{user_name},{user_id},{guild_id},{command},{total_items}\n")
 
 def run_discord_bot(axeBot = axeBot):
   axeBot = initialize_bot(axeBot)
