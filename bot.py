@@ -3,6 +3,7 @@ from discord.ext import commands
 import subprocess
 import pandas as pd
 import datetime
+from datetime import date
 import os
 import sys
 import time
@@ -27,13 +28,15 @@ class axeBot:
 
     def log_command(self, msg, total_items = 0):
 
-        day = datetime.datetime.now()
+        day = date.today()
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
         user_id = msg.author.id
         guild_id = msg.guild.id
         command = msg.content
 
         f = open("stats.csv","a")
-        f.write(f"{day},{user_id},{guild_id},{command},{total_items}\n")
+        f.write(f"{day},{current_time},{user_id},{guild_id},{command},{total_items}\n")
         f.close()
 
 
