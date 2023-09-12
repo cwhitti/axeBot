@@ -1,18 +1,14 @@
 import discord
-from discord.ext import commands
 import subprocess
-import pandas as pd
 import datetime
-from datetime import date
 import os
 import sys
 import time
-from dotenv import load_dotenv
-import requests
-from bs4 import BeautifulSoup
 from class_lookup import *
-import math
 from classes import name_list
+from datetime import date
+from discord.ext import commands
+from dotenv import load_dotenv
 
 class axeBot:
     def __init__(self, token = None, prefix = None, color = None):
