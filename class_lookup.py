@@ -11,6 +11,8 @@ def get_sub_nbr(input_course_code):
 
     course_code = lower_course_code.upper()
 
+    semester_code = "1237"
+
     if course_code not in name_list:
         if course_code[-1] in end_signifiers:
             if course_code[-2] in end_signifiers: # Has an ending like "ENV301WH"
@@ -60,13 +62,13 @@ def get_sub_nbr(input_course_code):
         subject = course_code
         cat_nbr = ""
 
-    return subject, cat_nbr
+    return subject, cat_nbr, semester_code
 
-def get_urls(subject, cat_nbr): #returns a list of URLS for a lookup
+def get_urls(subject, cat_nbr, semester_code): #returns a list of URLS for a lookup
 
     url_list = []
 
-    search_url = create_search_url(subject, cat_nbr)
+    search_url = create_search_url(subject, cat_nbr, semester_code)
 
     # Parse the search page HTML
     search_soup = get_search_soup(search_url)
@@ -136,12 +138,12 @@ def get_class_dict(url_list): # Returns a dictionary of classes
 
     return class_dict
 
-def get_class_dict_short(subject, cat_nbr): # Returns a dict of simply course ID and name
+def get_class_dict_short(subject, cat_nbr, semester_code): # Returns a dict of simply course ID and name
 
     class_dict = {}
 
     # URL of the search page
-    search_url = create_search_url(subject, cat_nbr)
+    search_url = create_search_url(subject, cat_nbr, semester_code)
 
     # Parse the course page HTML
     search_soup = get_search_soup(search_url)
@@ -228,7 +230,7 @@ def get_course_semesters(search_soup):
 def random_class(): # generate a random class for funsies
 
     random_subject = random.choice(name_list)
-    url_list = get_urls(random_subject, "")
+    url_list = get_urls(random_subject, "", "1237")
     random_url = random.choice(url_list)
     class_dict = get_class_dict([random_url])
 
@@ -264,8 +266,8 @@ def prereq_tree(input_course_code):
     else:
         print("No exist")
 
-def create_search_url(subject, cat_nbr):
-    return f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term=1237"
+def create_search_url(subject, cat_nbr, semester_code):
+    return f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term={semester_code}"
 
 def create_course_url(course_link):
     return f"https://catalog.nau.edu/Courses/{course_link}"

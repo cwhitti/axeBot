@@ -8,6 +8,7 @@ from class_lookup import *
 from classes import name_list
 from datetime import date
 from discord.ext import commands
+from discord import app_commands
 from dotenv import load_dotenv
 import pandas as pd
 
@@ -81,6 +82,7 @@ def run_discord_bot(axeBot = axeBot):
   intents = discord.Intents.default()
   intents.message_content = True
   client = discord.Client(intents=intents)
+  tree = app_commands.CommandTree(client)
 
   user_cooldowns = {}
 
@@ -210,8 +212,8 @@ def run_discord_bot(axeBot = axeBot):
             for i in range(1, len(args)):
                 input_course_code += args[i]
 
-            subject, cat_nbr = get_sub_nbr(input_course_code)
-            url_list = get_urls(subject, cat_nbr)
+            subject, cat_nbr, semester_code = get_sub_nbr(input_course_code)
+            url_list = get_urls(subject, cat_nbr, semester_code)
 
             # Embed the full class
             if len(url_list) <= 5:
@@ -234,7 +236,7 @@ def run_discord_bot(axeBot = axeBot):
             # shows a list of names to look up
             elif len(url_list) > 5:
                 # just grab the name and class ID
-                class_dict = get_class_dict_short(subject, cat_nbr)
+                class_dict = get_class_dict_short(subject, cat_nbr, semester_code)
 
                 if class_dict:
                     total_items = len(class_dict)
