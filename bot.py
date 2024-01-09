@@ -4,6 +4,7 @@ import datetime
 import os
 import sys
 import time
+import stats
 from class_lookup import *
 from classes import name_list
 from datetime import date
@@ -152,7 +153,11 @@ def run_discord_bot(axeBot = axeBot):
 
     if msg.content.startswith(f"{axeBot.prefix}stats"):
         embed = axeBot.create_stats_embed()
+        pie_chart = stats.get_pie_chart("user_name")
+        histogram = stats.get_usage_histogram()
         await msg.channel.send(embed=embed)
+        await msg.channel.send(file=discord.File(pie_chart))
+        await msg.channel.send(file=discord.File(histogram))
 
     if msg.content.startswith(f"{axeBot.prefix}random"): # Gen random class
         async with msg.channel.typing():
