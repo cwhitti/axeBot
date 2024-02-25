@@ -13,8 +13,6 @@ from discord import app_commands
 from dotenv import load_dotenv
 import pandas as pd
 
-eeee
-
 class axeBot:
     def __init__(self, token = None, prefix = None, color = None):
         self.token = token

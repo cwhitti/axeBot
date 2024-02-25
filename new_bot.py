@@ -12,7 +12,7 @@ def run_discord_bot():
     intents.message_content = True
     client = discord.Client( intents=intents )
 
-    prefix = axeBot.pfx
+    prefix = axeBot.prefix
 
     #Show bot logged on successfully
     @client.event
@@ -31,10 +31,6 @@ def run_discord_bot():
         if msg.author == client.user or msg.attachments:
             return 0 # fail out
 
-        if len(args) < 2:
-            # embed incorrect message
-            return 0 # fail out
-
         # grab message contents
         if msg.content.startswith( prefix ):
 
@@ -48,8 +44,10 @@ def run_discord_bot():
 
                 if selected_option:
 
-                    embed = axeBot.cmd_dict[command](msg, args, argc)
-                    print("Hello!")
+                    embeds = axeBot.cmd_dict[command][0](msg, args, argc)
+
+                    for embed in embeds:
+                        await msg.channel.send(embed=embed)
 
                 return 0
 

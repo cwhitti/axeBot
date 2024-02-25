@@ -56,7 +56,6 @@ def get_urls(axeBot):
     url_list = []
     search_url = axeBot.search_url
 
-    print(search_url)
     # Parse the search page HTML
     search_soup = get_search_soup(search_url)
 
@@ -69,8 +68,6 @@ def get_urls(axeBot):
             # Find the <a> element within the <dt> element and extract the href attribute
             course_link = dt_element.find("a")["href"]
 
-            print(course_link)
-
             # Construct the full URL
             course_url = create_course_url(course_link)
 
@@ -78,7 +75,6 @@ def get_urls(axeBot):
 
     except AttributeError as e:
 
-        print("oops")
         raise e
         return None
 

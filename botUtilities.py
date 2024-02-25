@@ -1,6 +1,7 @@
 import re
 import classUtilities as cls
 import requests
+from courseClass import Course
 
 def create_search_url( axeBot ):
 
@@ -14,7 +15,7 @@ def create_search_url( axeBot ):
     return url
     #return f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term={semester_code}"
 
-def get_class_dict( axeBot ): # Returns a dictionary of classes
+def get_class_dict( axeBot ): # Returns a list of classes
 
     # initialize variables
     url_list = axeBot.url_list
@@ -23,8 +24,7 @@ def get_class_dict( axeBot ): # Returns a dictionary of classes
     # ensure urls
     if url_list:
 
-        print("Yay url!")
-        class_dict = {}
+        course_list = []
 
         #loop thru URLS
         for url in url_list:
@@ -33,20 +33,19 @@ def get_class_dict( axeBot ): # Returns a dictionary of classes
             search_soup = cls.get_search_soup(url)
 
             # get class elements
-            course_name = cls.get_course_name(search_soup)
-            course_description = cls.get_course_description(search_soup)
-            course_units = cls.get_course_units(search_soup)
-            course_designation = cls.get_course_designation(search_soup)
-            course_semesters = cls.get_course_semesters(search_soup)
+            name = cls.get_course_name(search_soup)
+            desc = cls.get_course_description(search_soup)
+            units = cls.get_course_units(search_soup)
+            desig = cls.get_course_designation(search_soup)
+            sems = cls.get_course_semesters(search_soup)
 
-            if course_name and course_description and course_units:
+            if name and desc:
 
                 # Split the string using '&' as delimiter
                 split_parts = url.split('?')
 
                 # Loop through the split parts to find and extract the courseId
                 course_id = None
-
                 for part in split_parts:
 
                     if part.startswith("courseId="):
@@ -54,13 +53,12 @@ def get_class_dict( axeBot ): # Returns a dictionary of classes
                         course_id_long = part.split('=')[1]
                         course_id = course_id_long.split('&')[0]
 
-                        class_dict[course_id] = [ course_name,
-                                                    course_description,
-                                                    course_units,
-                                                    course_designation,
-                                                    course_semesters ]
+                course_instance = Course( name, desc, units, desig, sems,
+                                                course_id, axeBot.sms_code, url)
 
-    return class_dict
+                course_list.append(course_instance)
+
+    return course_list
 
 def get_class_dict_short(subject, cat_nbr, semester_code): # Returns a dict of simply course ID and name
 

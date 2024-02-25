@@ -40,9 +40,9 @@ class AxeBot:
 
         # begin searches
         self.url_list = get_urls(self)
-        self.course_list = get_class_dict(self)
+        self.class_dict = get_class_dict(self)
 
-        return embed_courses( self )
+
 
     def random(self, msg, args, argc):
         return 0
@@ -63,6 +63,35 @@ class AxeBot:
 
         # return url
         return addr + client_id + perms + scope
+
+    def _universal_embed(title, title_desc, color, fields, image=None,
+                                                        timestamp=False,
+                                                        footer=None):
+
+        embed = discord.Embed(title=title,
+                              description=title_desc,
+                              color=color)
+
+        for name, value in fields:
+
+            embed.add_field(name=name,
+                            value=value,
+                            inline=False)
+
+        if image:
+            embed.set_thumbnail(url=image)
+
+        if footer:
+            embed.set_footer(text=footer)
+
+        if timestamp:
+            timestamp = datetime.now()
+            dt_string = timestamp.strftime("%B %d, %Y (%H:%M:%S)")
+
+            embed.add_field(name="Timestamp",
+                            value=dt_string,
+                            inline=False)
+        return embed
 
     def __init__(self):
 
@@ -89,7 +118,7 @@ class AxeBot:
 
         # begin HTML searches
         self.url_list = None # List of URLS on page
-        self.course_list = None # Dict of all classes
+        self.class_dict = None # Dict of all classes
 
         # Command dict
         self.cmd_dict = {
