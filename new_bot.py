@@ -56,8 +56,6 @@ def run_discord_bot():
 
                             await msg.channel.send(embed=embed)
 
-                    axeBot.clear_search()
-
             return 0
 
     client.run( axeBot.token )
