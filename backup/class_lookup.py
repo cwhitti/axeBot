@@ -3,66 +3,6 @@ from bs4 import BeautifulSoup
 from classes import name_list
 import random
 
-def get_sub_nbr(input_course_code):
-
-    lower_course_code = input_course_code.replace(" ","")
-
-    end_signifiers = ['H','h','L','l','W','w','R','r','c','C']
-
-    course_code = lower_course_code.upper()
-
-    semester_code = "1237"
-
-    if course_code not in name_list:
-        if course_code[-1] in end_signifiers:
-            if course_code[-2] in end_signifiers: # Has an ending like "ENV301WH"
-                if len(course_code) == 7:
-                    subject = course_code[:3]
-                    cat_nbr = course_code[3:]
-
-                elif len(course_code) == 8:
-                    subject = course_code[:3]
-                    cat_nbr = course_code[3:]
-
-                else:
-                    subject = 'aaa'
-                    cat_nbr = '000'
-            else: # Has an ending like "ENV301W"
-                if len(course_code) == 6:
-                    subject = course_code[:2]
-                    cat_nbr = course_code[2:]
-
-                elif len(course_code) == 7:
-                    subject = course_code[:3]
-                    cat_nbr = course_code[3:]
-
-                elif len(course_code) == 8:
-                    subject = course_code[:4]
-                    cat_nbr = course_code[4:]
-
-                else:
-                    subject = 'aaa'
-                    cat_nbr = '000'
-        else: # Has no ending, like "BIO181"
-            if len(course_code) == 5:
-                subject = course_code[:2]
-                cat_nbr = course_code[2:]
-
-            elif len(course_code) == 6:
-                subject = course_code[:3]
-                cat_nbr = course_code[3:]
-
-            elif len(course_code) == 7:
-                subject = course_code[:4]
-                cat_nbr = course_code[4:]
-            else:
-                subject = 'aaa'
-                cat_nbr = '000'
-    else: # Subject is in name list
-        subject = course_code
-        cat_nbr = ""
-
-    return subject, cat_nbr, semester_code
 
 def get_urls(subject, cat_nbr, semester_code): #returns a list of URLS for a lookup
 
