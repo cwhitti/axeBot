@@ -7,19 +7,23 @@ def create_search_url( axeBot ):
 
     base_url = "https://catalog.nau.edu/Courses/results?"
     subject = "subject=" + axeBot.sub
-    cat_nbr = "&catNbr=" + axeBot.cat_nbr
+    cat_nbr = "&catNbr=" + axeBot.cat_nbr + axeBot.ending
     term="&term=" + axeBot.sms_code
 
-    url = base_url+subject + cat_nbr + term
+    url = base_url + subject + cat_nbr + term
 
     return url
     #return f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term={semester_code}"
 
-def get_class_dict( axeBot ): # Returns a list of classes
+def get_class_dict( axeBot, type ): # Returns a list of classes
 
     # initialize variables
     url_list = axeBot.url_list
     course_list = None
+    desc = None
+    units = None
+    desig = None
+    sems = None
 
     # ensure urls
     if url_list:
@@ -32,35 +36,29 @@ def get_class_dict( axeBot ): # Returns a list of classes
             #get search soup
             search_soup = cls.get_search_soup(url)
 
-            # get class elements
+            # get name, ID
             name = cls.get_course_name(search_soup)
-            desc = cls.get_course_description(search_soup)
-            units = cls.get_course_units(search_soup)
-            desig = cls.get_course_designation(search_soup)
-            sems = cls.get_course_semesters(search_soup)
+            id = cls.get_course_id(url)
 
-            if name and desc:
+            # check for long form
+            if ( type != "short" ):
 
-                # Split the string using '&' as delimiter
-                split_parts = url.split('?')
+                # get class elements
+                desc = cls.get_course_description(search_soup)
+                units = cls.get_course_units(search_soup)
+                desig = cls.get_course_designation(search_soup)
+                sems = cls.get_course_semesters(search_soup)
 
-                # Loop through the split parts to find and extract the courseId
-                course_id = None
-                for part in split_parts:
+            # create instance
+            course = Course( name, desc, units, desig, sems,
+                                            id, axeBot.sms_code, url)
 
-                    if part.startswith("courseId="):
-
-                        course_id_long = part.split('=')[1]
-                        course_id = course_id_long.split('&')[0]
-
-                course_instance = Course( name, desc, units, desig, sems,
-                                                course_id, axeBot.sms_code, url)
-
-                course_list.append(course_instance)
+            # add instance to list
+            course_list.append(course)
 
     return course_list
 
-def get_class_dict_short(subject, cat_nbr, semester_code): # Returns a dict of simply course ID and name
+def get_class_dict_short(subject, cat_nbr, semester_code):
 
     class_dict = {}
 
@@ -126,10 +124,14 @@ def get_sub_nbr(axeBot):
 
     if course_code[-1] in endings: # there are endings
 
+        axeBot.ending += course_code[-1]
+
         # get rid of the ending
         extract = extract[:-1]
 
         if course_code[-2] in endings:
+
+            axeBot.ending += course_code[-2]
 
             # get rid of second ending
             extract = extract[:-1]

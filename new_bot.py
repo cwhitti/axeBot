@@ -1,5 +1,6 @@
 import discord
 from axeBot import AxeBot
+import embedUtilities as eu
 #from classes.course import Course
 
 def run_discord_bot():
@@ -44,11 +45,15 @@ def run_discord_bot():
 
                 if selected_option:
 
-                    embeds = axeBot.cmd_dict[command][0](msg, args, argc)
+                    embed = eu.embed_working( axeBot )
+                    await msg.channel.send(embed=embed)
 
                     async with msg.channel.typing():
 
+                        embeds = axeBot.cmd_dict[command][0](msg, args, argc)
+
                         for embed in embeds:
+
                             await msg.channel.send(embed=embed)
 
                     axeBot.clear_search()

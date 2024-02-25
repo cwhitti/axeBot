@@ -4,6 +4,20 @@ from bs4 import BeautifulSoup
 def create_course_url(course_link):
     return f"https://catalog.nau.edu/Courses/{course_link}"
 
+def get_course_id( url ):
+
+    # Split the string using '&' as delimiter
+    split_parts = url.split('?')
+
+    # Loop through the split parts to find and extract the courseId
+    course_id = None
+    for part in split_parts:
+
+        if part.startswith("courseId="):
+
+            course_id_long = part.split('=')[1]
+            course_id = course_id_long.split('&')[0]
+
 def get_course_name(search_soup):
     return search_soup.find("h2").text
 

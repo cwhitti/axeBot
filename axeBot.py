@@ -8,16 +8,19 @@ class AxeBot:
 
     def lookup(self, msg, args, argc):
 
+        # check for just subject lookup - ex: axe.lookup bio
         if args[1].upper() in name_list and argc == 2:
 
+            # add subject and default term
             self.sub = args[1].upper()
             self.sms_code = self.dft_term
 
+            # get search URL
             self.search_url = create_search_url(self)
 
             # begin searches
             self.url_list = get_urls(self)
-            self.course_list = get_class_dict(self)
+            self.course_list = get_class_dict(self, "short")
 
             return embed_courses( self )
 
@@ -52,7 +55,7 @@ class AxeBot:
 
         # begin searches
         self.url_list = get_urls(self)
-        self.course_list = get_class_dict(self)
+        self.course_list = get_class_dict(self, "long")
 
         return embed_courses( self )
 
@@ -89,7 +92,7 @@ class AxeBot:
         self.dft_year = "2024"
         self.dft_term = "1247"
 
-        # custom bits
+        # custom search bitss
         self.command = "" # ex: axe.lookup
         self.search_code = "" # ex: CS249
         self.search_szn = "" # ex: "spring"
@@ -98,6 +101,7 @@ class AxeBot:
         self.sms_code = "" # ex: 1237
         self.sub = "" # ex: "CS"
         self.cat_nbr = "" # #ex: "249"
+        self.ending = "" # ex: "WH"
 
         # begin HTML searches
         self.url_list = None # List of URLS on page
@@ -142,4 +146,17 @@ class AxeBot:
         self.search_url = "" # ex: HTML SEARCH URL
         self.sms_code = "" # ex: 1237
         self.sub = "" # ex: "CS"
-        self.cat_nbr = "" # #ex: "249"
+        self.cat_nbr = "" # # ex: "249"
+        self.ending = "" # ex: "WH"
+
+        # clear lists
+        self.clear_url_list()
+        self.clear_course_list()
+
+    def clear_url_list(self):
+
+        self.url_list.clear()
+
+    def clear_course_list(self):
+
+        self.course_list.clear()
