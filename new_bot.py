@@ -58,6 +58,4 @@ def run_discord_bot():
 
                         await msg.channel.send(embed=embed)
 
-            return 0
-
     client.run( axeBot.token )
