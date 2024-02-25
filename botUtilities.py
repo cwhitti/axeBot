@@ -2,6 +2,7 @@ import re
 import classUtilities as cls
 import requests
 from courseClass import Course
+from bs4 import BeautifulSoup
 
 def create_search_url( axeBot ):
 
@@ -12,8 +13,6 @@ def create_search_url( axeBot ):
 
     url = base_url + subject + cat_nbr + term
 
-    print(url)
-
     return url
     #return f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term={semester_code}"
 
@@ -21,7 +20,7 @@ def get_class_dict( axeBot ): # Returns a list of classes
 
     # initialize variables
     url_list = axeBot.url_list
-    course_list = None
+    course_list = []
     desc = None
     units = None
     desig = None
@@ -29,8 +28,6 @@ def get_class_dict( axeBot ): # Returns a list of classes
 
     # ensure urls
     if url_list:
-
-        course_list = []
 
         #loop thru URLS
         for url in url_list:
@@ -60,6 +57,11 @@ def get_class_dict( axeBot ): # Returns a list of classes
 def get_class_dict_short( search ):
 
     course_list = []
+    desc = None
+    units = None
+    desig = None
+    sems = None
+    url = None
 
     # Parse the course page HTML
     search_soup = get_search_soup( search.search_url )
@@ -70,12 +72,23 @@ def get_class_dict_short( search ):
     # Extract and store course IDs and names in the dictionary
     for link in course_links:
 
-        course = Course()
-        course.id = link['href'].split('=')[1].split('&')[0]
-        course.name = link.get_text(strip=True)
+        id = link['href'].split('=')[1].split('&')[0]
+        name = link.get_text(strip=True)
+        course = Course(name, desc, units, desig, sems,
+                                        id, search.sms_code, url)
         course_list.append( course )
 
     return course_list
+
+def get_search_soup(search_url):
+
+    # Send an HTTP GET request to the search page
+    search_response = requests.get(search_url)
+
+    # Parse the search page HTML
+    search_soup = BeautifulSoup(search_response.content, "html.parser")
+
+    return search_soup
 
 def get_sms_code(axeBot):
 

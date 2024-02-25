@@ -17,16 +17,14 @@ class AxeBot:
 
             # add subject and default term
             search.sub = args[1].upper()
-            search.sms_code = self.dft_term
+            search.sms_code = search.dft_term
 
             # get search URL
             search.search_url = create_search_url( search )
             search.course_list = get_class_dict_short( search )
 
-            if len(  search.course_list > 0):
-
+            if len( search.course_list )  > 0:
                 return embed_courses( search )
-
 
         # ex: CS     249
         if ( args[1].isalpha() and args[2].isdigit() ):
