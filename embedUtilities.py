@@ -16,33 +16,6 @@ def create_help_embed(axeBot):
 
     return embed
 
-def create_subjects_embed(axeBot, name_list):
-
-    embed = discord.Embed(title="NAU Subjects",
-        description="List of available topics:",
-        color=axeBot.color)
-
-    start_letter = 'A'
-    name_string = ""
-
-    for name in name_list:
-
-        if name_string != "":
-
-            if name[0] == start_letter:
-                name_string += f", {name}"
-
-            else:
-                embed.add_field(name="", value=name_string, inline=False)
-                start_letter = name[0]
-                name_string = ""
-        else:
-            name_string = f"{name}"
-
-    embed.add_field(name="", value=name_string, inline=False)
-
-    return embed
-
 def embed_courses( axeBot ):
 
     course_list = axeBot.course_list
@@ -125,5 +98,13 @@ def one_embed_course(axeBot, course):
     embed.add_field(name="",
         value=f"[Course Link]({course_url})",
         inline=False)
+
+    return embed
+
+def embed_working( axeBot ):
+
+    embed = discord.Embed(title="Working on it...", description="", color=axeBot.color)
+
+    embed.set_footer(text="(!) This process may take up to one minute.")
 
     return embed

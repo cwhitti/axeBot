@@ -3,59 +3,64 @@ from botUtilities import *
 from classUtilities import *
 from embedUtilities import *
 from classes import name_list
+from searchClass import Search
 
 class AxeBot:
 
     def lookup(self, msg, args, argc):
 
+        search = Search( self.dft_szn, self.dft_year, self.dft_term, self.color )
+
         if args[1].upper() in name_list and argc == 2:
 
-            self.sub = args[1].upper()
-            self.sms_code = self.dft_term
+            search.sub = args[1].upper()
+            search.sms_code = search.dft_term
 
-            self.search_url = create_search_url(self)
+            search.search_url = create_search_url(search)
 
             # begin searches
-            self.url_list = get_urls(self)
-            self.course_list = get_class_dict(self)
+            search.url_list = get_urls(search)
+            search.course_list = get_class_dict(search)
 
-            return embed_courses( self )
+            return embed_courses( search )
 
         # ex: CS     249
         if ( args[1].isalpha() and args[2].isdigit() ):
 
             # combine - CS249
-            self.search_code = args[1] + args[2]
+            search.search_code = args[1] + args[2]
             year_pos = 4
 
         # ex: CS249 or 249CS or other
         else:
-            self.search_code = args[1]
+            search.search_code = args[1]
             year_pos = 3
 
-        self.sub, self.cat_nbr = get_sub_nbr(self)
+        search.sub, search.cat_nbr = get_sub_nbr(search)
 
         # szn + year was specified - 2005
         if ( argc == year_pos + 1):
 
             # ensure correct szn
-            self.search_szn = args[ year_pos - 1 ]
-            self.search_year = args[ year_pos ]
+            search.search_szn = args[ year_pos - 1 ]
+            search.search_year = args[ year_pos ]
 
         # Year was not specified
         else:
-            self.search_szn = self.dft_szn
-            self.search_year = self.dft_year
+            search.search_szn = search.dft_szn
+            search.search_year = search.dft_year
 
-        self.sms_code = get_sms_code(self)
+        search.sms_code = get_sms_code(search)
 
-        self.search_url = create_search_url(self)
+        search.search_url = create_search_url(search)
 
         # begin searches
-        self.url_list = get_urls(self)
-        self.course_list = get_class_dict(self)
+        search.url_list = get_urls(search)
+        search.course_list = get_class_dict(search)
 
-        return embed_courses( self )
+        search.clear_search()
+
+        return embed_courses( search )
 
     def random(self, msg, args, argc):
         return 0
@@ -123,24 +128,3 @@ class AxeBot:
                                                 "Invite the bots"
                                                 ),
                         }
-        # end signifiers
-        self.end_sigs = ['H','h','L','l','W','w','R','r','c','C']
-
-        # season dict
-        self.szn_dict = {
-                        "spring":"1",
-                        "summer":"4",
-                        "fall":"7",
-                        "winter":"8"
-                        }
-
-    def clear_search(self):
-        # custom bits
-        self.command = "" # ex: axe.lookup
-        self.search_code = "" # ex: CS249
-        self.search_szn = "" # ex: "spring"
-        self.search_year = "" # ex: "2018"
-        self.search_url = "" # ex: HTML SEARCH URL
-        self.sms_code = "" # ex: 1237
-        self.sub = "" # ex: "CS"
-        self.cat_nbr = "" # #ex: "249"

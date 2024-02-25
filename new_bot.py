@@ -1,5 +1,6 @@
 import discord
 from axeBot import AxeBot
+import embedUtilities as eu
 #from classes.course import Course
 
 def run_discord_bot():
@@ -31,27 +32,28 @@ def run_discord_bot():
         if msg.author == client.user or msg.attachments:
             return 0 # fail out
 
-            # grab message contents
-            if msg.content.startswith( prefix ):
+        # grab message contents
+        if msg.content.startswith( prefix ):
 
-                # Get command - axe.lookup
-                command = args[0].lower()
+            embed = eu.embed_working( axeBot )
+            await msg.channel.send(embed=embed)
 
-                # check if command is in it
-                if command in axeBot.cmd_dict.keys():
+            # Get command - axe.lookup
+            command = args[0].lower()
 
-                    selected_option = axeBot.cmd_dict.get( command )
+            # check if command is in it
+            if command in axeBot.cmd_dict.keys():
 
-                    if selected_option:
+                selected_option = axeBot.cmd_dict.get( command )
 
-                        embeds = axeBot.cmd_dict[command][0](msg, args, argc)
+                if selected_option:
 
-                        async with msg.channel.typing():
-                            
-                            for embed in embeds:
-                                await msg.channel.send(embed=embed)
+                    embeds = axeBot.cmd_dict[command][0](msg, args, argc)
 
-                        axeBot.clear_search()
+                    async with msg.channel.typing():
+
+                        for embed in embeds:
+                            await msg.channel.send(embed=embed)
 
             return 0
 
