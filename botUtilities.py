@@ -2,12 +2,22 @@ import re
 import classUtilities as cls
 import requests
 
+def create_search_url( axeBot ):
+
+    base_url = "https://catalog.nau.edu/Courses/results?"
+    subject = "subject=" + axeBot.sub
+    cat_nbr = "&catNbr=" + axeBot.cat_nbr
+    term="&term=" + axeBot.sms_code
+
+    url = base_url+subject + cat_nbr + term
+
+    return url
+    #return f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term={semester_code}"
+
 def get_class_dict( axeBot ): # Returns a dictionary of classes
 
     # initialize variables
     url_list = axeBot.url_list
-
-    print(url_list)
     class_dict = None
 
     # ensure urls
@@ -26,7 +36,6 @@ def get_class_dict( axeBot ): # Returns a dictionary of classes
             course_name = cls.get_course_name(search_soup)
             course_description = cls.get_course_description(search_soup)
             course_units = cls.get_course_units(search_soup)
-            course_prerequisites = cls.get_course_prereqs(search_soup)
             course_designation = cls.get_course_designation(search_soup)
             course_semesters = cls.get_course_semesters(search_soup)
 
@@ -48,7 +57,6 @@ def get_class_dict( axeBot ): # Returns a dictionary of classes
                         class_dict[course_id] = [ course_name,
                                                     course_description,
                                                     course_units,
-                                                    course_prerequisites,
                                                     course_designation,
                                                     course_semesters ]
 

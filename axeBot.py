@@ -33,11 +33,14 @@ class AxeBot:
             self.search_year = self.dft_year
 
         self.sms_code = get_sms_code(self)
-        self.search_url = create_course_url(self)
+
+        self.search_url = create_search_url(self)
 
         # begin searches
         self.url_list = get_urls(self)
         self.class_dict = get_class_dict(self)
+
+        print(self.class_dict)
 
     def random(self, msg, args, argc):
         return 0
