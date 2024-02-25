@@ -17,7 +17,6 @@ def get_course_description(search_soup):
         course_description = course_description[0:end_index] + cont_message
 
     return course_description
-
 def get_course_units(search_soup):
     return search_soup.find("strong", text="Units:").find_next_sibling(text=True).strip()
 

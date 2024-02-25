@@ -23,7 +23,6 @@ class AxeBot:
 
         # ex: CS     249
         if ( args[1].isalpha() and args[2].isdigit() ):
-
             # combine - CS249
             self.search_code = args[1] + args[2]
             year_pos = 4
