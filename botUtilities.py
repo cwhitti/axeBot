@@ -12,10 +12,12 @@ def create_search_url( axeBot ):
 
     url = base_url + subject + cat_nbr + term
 
+    print(url)
+
     return url
     #return f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term={semester_code}"
 
-def get_class_dict( axeBot, type ): # Returns a list of classes
+def get_class_dict( axeBot ): # Returns a list of classes
 
     # initialize variables
     url_list = axeBot.url_list
@@ -40,14 +42,11 @@ def get_class_dict( axeBot, type ): # Returns a list of classes
             name = cls.get_course_name(search_soup)
             id = cls.get_course_id(url)
 
-            # check for long form
-            if ( type != "short" ):
-
-                # get class elements
-                desc = cls.get_course_description(search_soup)
-                units = cls.get_course_units(search_soup)
-                desig = cls.get_course_designation(search_soup)
-                sems = cls.get_course_semesters(search_soup)
+            # get class elements
+            desc = cls.get_course_description(search_soup)
+            units = cls.get_course_units(search_soup)
+            desig = cls.get_course_designation(search_soup)
+            sems = cls.get_course_semesters(search_soup)
 
             # create instance
             course = Course( name, desc, units, desig, sems,
@@ -58,26 +57,25 @@ def get_class_dict( axeBot, type ): # Returns a list of classes
 
     return course_list
 
-def get_class_dict_short(subject, cat_nbr, semester_code):
+def get_class_dict_short( search ):
 
-    class_dict = {}
-
-    # URL of the search page
-    search_url = create_search_url(subject, cat_nbr, semester_code)
+    course_list = []
 
     # Parse the course page HTML
-    search_soup = get_search_soup(search_url)
+    search_soup = get_search_soup( search.search_url )
 
     # Find all <a> tags with course details links
     course_links = search_soup.find_all('a', title='view course details')
 
     # Extract and store course IDs and names in the dictionary
     for link in course_links:
-        course_id = link['href'].split('=')[1].split('&')[0]
-        course_name = link.get_text(strip=True)
-        class_dict[course_id] = course_name
 
-    return class_dict
+        course = Course()
+        course.id = link['href'].split('=')[1].split('&')[0]
+        course.name = link.get_text(strip=True)
+        course_list.append( course )
+
+    return course_list
 
 def get_sms_code(axeBot):
 

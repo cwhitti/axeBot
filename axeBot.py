@@ -3,61 +3,67 @@ from botUtilities import *
 from classUtilities import *
 from embedUtilities import *
 from classes import name_list
+from searchClass import Search
 
 class AxeBot:
 
     def lookup(self, msg, args, argc):
 
+        search = Search( self.dft_szn, self.dft_year,
+                         self.dft_term, self.color )
+
         # check for just subject lookup - ex: axe.lookup bio
         if args[1].upper() in name_list and argc == 2:
 
             # add subject and default term
-            self.sub = args[1].upper()
-            self.sms_code = self.dft_term
+            search.sub = args[1].upper()
+            search.sms_code = self.dft_term
 
             # get search URL
-            self.search_url = create_search_url(self)
+            search.search_url = create_search_url( search )
+            search.course_list = get_class_dict_short( search )
 
-            # begin searches
-            self.url_list = get_urls(self)
-            self.course_list = get_class_dict(self, "short")
+            if len(  search.course_list > 0):
 
-            return embed_courses( self )
+                return embed_courses( search )
+
 
         # ex: CS     249
         if ( args[1].isalpha() and args[2].isdigit() ):
             # combine - CS249
-            self.search_code = args[1] + args[2]
+            search.search_code = args[1] + args[2]
             year_pos = 4
 
         # ex: CS249 or 249CS or other
         else:
-            self.search_code = args[1]
+            search.search_code = args[1]
             year_pos = 3
 
-        self.sub, self.cat_nbr = get_sub_nbr(self)
+        search.sub, search.cat_nbr = get_sub_nbr( search )
 
         # szn + year was specified - 2005
         if ( argc == year_pos + 1):
 
             # ensure correct szn
-            self.search_szn = args[ year_pos - 1 ]
-            self.search_year = args[ year_pos ]
+            search.search_szn = args[ year_pos - 1 ]
+            search.search_year = args[ year_pos ]
 
         # Year was not specified
         else:
-            self.search_szn = self.dft_szn
-            self.search_year = self.dft_year
+            search.search_szn = search.dft_szn
+            search.search_year = search.dft_year
 
-        self.sms_code = get_sms_code(self)
+        search.sms_code = get_sms_code( search )
+        search.search_url = create_search_url( search )
 
-        self.search_url = create_search_url(self)
+        print( search.url_list )
+        if ( len(search.url_list) > 0 ):
+            search.course_list = get_class_dict( search )
+            return embed_courses( search )
 
-        # begin searches
-        self.url_list = get_urls(self)
-        self.course_list = get_class_dict(self, "long")
-
-        return embed_courses( self )
+        else:
+            print("Doesnt exit")
+            return 0
 
     def random(self, msg, args, argc):
         return 0
@@ -92,21 +98,6 @@ class AxeBot:
         self.dft_year = "2024"
         self.dft_term = "1247"
 
-        # custom search bitss
-        self.command = "" # ex: axe.lookup
-        self.search_code = "" # ex: CS249
-        self.search_szn = "" # ex: "spring"
-        self.search_year = "" # ex: "2018"
-        self.search_url = "" # ex: HTML SEARCH URL
-        self.sms_code = "" # ex: 1237
-        self.sub = "" # ex: "CS"
-        self.cat_nbr = "" # #ex: "249"
-        self.ending = "" # ex: "WH"
-
-        # begin HTML searches
-        self.url_list = None # List of URLS on page
-        self.course_list = None # Dict of all classes
-
         # Command dict
         self.cmd_dict = {
                         self.prefix + "lookup": (
@@ -125,16 +116,6 @@ class AxeBot:
                                                 self.invite,
                                                 "Invite the bots"
                                                 ),
-                        }
-        # end signifiers
-        self.end_sigs = ['H','h','L','l','W','w','R','r','c','C']
-
-        # season dict
-        self.szn_dict = {
-                        "spring":"1",
-                        "summer":"4",
-                        "fall":"7",
-                        "winter":"8"
                         }
 
     def clear_search(self):
