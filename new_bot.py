@@ -38,25 +38,25 @@ def run_discord_bot():
             # Get command - axe.lookup
             command = args[0].lower()
 
-            # check if command is in it
+            # check if command is valid
             if command in axeBot.cmd_dict.keys():
 
+                # Grab the command
                 selected_option = axeBot.cmd_dict.get( command )
 
-                if selected_option:
+                # create working embed
+                embed = eu.embed_working( axeBot )
+                await msg.channel.send(embed=embed)
 
-                    embed = eu.embed_working( axeBot )
-                    await msg.channel.send(embed=embed)
+                # begin typing
+                async with msg.channel.typing():
 
-                    async with msg.channel.typing():
+                    # create the embed list
+                    embeds = axeBot.cmd_dict[command][0](msg, args, argc)
 
-                        embeds = axeBot.cmd_dict[command][0](msg, args, argc)
+                    for embed in embeds:
 
-                        for embed in embeds:
-
-                            await msg.channel.send(embed=embed)
-
-                    axeBot.clear_search()
+                        await msg.channel.send(embed=embed)
 
             return 0
 

@@ -5,3 +5,4 @@ times.csv
 stats.csv
 stats2.csv
 secret.py
+*.py__
