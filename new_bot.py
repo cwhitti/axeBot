@@ -31,27 +31,27 @@ def run_discord_bot():
         if msg.author == client.user or msg.attachments:
             return 0 # fail out
 
-            # grab message contents
-            if msg.content.startswith( prefix ):
+        # grab message contents
+        if msg.content.startswith( prefix ):
 
-                # Get command - axe.lookup
-                command = args[0].lower()
+            # Get command - axe.lookup
+            command = args[0].lower()
 
-                # check if command is in it
-                if command in axeBot.cmd_dict.keys():
+            # check if command is in it
+            if command in axeBot.cmd_dict.keys():
 
-                    selected_option = axeBot.cmd_dict.get( command )
+                selected_option = axeBot.cmd_dict.get( command )
 
-                    if selected_option:
+                if selected_option:
 
-                        embeds = axeBot.cmd_dict[command][0](msg, args, argc)
+                    embeds = axeBot.cmd_dict[command][0](msg, args, argc)
 
-                        async with msg.channel.typing():
-                            
-                            for embed in embeds:
-                                await msg.channel.send(embed=embed)
+                    async with msg.channel.typing():
 
-                        axeBot.clear_search()
+                        for embed in embeds:
+                            await msg.channel.send(embed=embed)
+
+                    axeBot.clear_search()
 
             return 0
 
