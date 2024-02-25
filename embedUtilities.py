@@ -61,24 +61,26 @@ def embed_courses( axeBot ):
     elif len(course_list) > 5:
 
         total_items = len(course_list)
-        items_per_embed = 25 # discord embed limit
-        course_ids = list(class_dict.keys())
+        items_per_embed = 24 # discord embed limit
 
         first = True
 
         for index in range(0, total_items, items_per_embed):
 
             batch_keys = course_list[index:index + items_per_embed]
-            embed = batch_embed_course(axeBot, course_list, first)
+
+            embed = batch_embed_course(axeBot, batch_keys, first)
+            embed_list.append ( embed )
+
             first = False
 
     return embed_list
 
-def batch_embed_course(axeBot, course_list, first):
+def batch_embed_course(axeBot, course_list, first_embed):
 
     # show title
     if first_embed == True:
-        embed = discord.Embed(title=f"{len(class_dict)} RESULTS FOUND",
+        embed = discord.Embed(title=f"{len(axeBot.course_list)} RESULTS FOUND",
                                 color=axeBot.color)
 
     # no title
@@ -104,7 +106,7 @@ def one_embed_course(axeBot, course):
     course_url = course.url
 
     embed = discord.Embed(title=course_name, description="", color=axeBot.color)
-    
+
     embed.add_field(name="Course ID:",
         value=course_id,
         inline=False)

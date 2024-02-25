@@ -2,11 +2,24 @@ import secret as sc
 from botUtilities import *
 from classUtilities import *
 from embedUtilities import *
-
+from classes import name_list
 
 class AxeBot:
 
     def lookup(self, msg, args, argc):
+
+        if args[1].upper() in name_list and argc == 2:
+
+            self.sub = args[1].upper()
+            self.sms_code = self.dft_term
+
+            self.search_url = create_search_url(self)
+
+            # begin searches
+            self.url_list = get_urls(self)
+            self.course_list = get_class_dict(self)
+
+            return embed_courses( self )
 
         # ex: CS     249
         if ( args[1].isalpha() and args[2].isdigit() ):
@@ -65,7 +78,6 @@ class AxeBot:
         return addr + client_id + perms + scope
 
     def __init__(self):
-
         # variables
         self.token = sc.TOKEN
         self.prefix = sc.PREFIX
@@ -76,16 +88,17 @@ class AxeBot:
         self.scope = "bot"
         self.dft_szn = "fall"
         self.dft_year = "2024"
+        self.dft_term = "1247"
 
         # custom bits
-        self.command = None # ex: axe.lookup
-        self.search_code = None # ex: CS249
-        self.search_szn = None # ex: "spring"
-        self.search_year = None # ex: "2018"
-        self.search_url = None # ex: HTML SEARCH URL
-        self.sms_code = None # ex: 1237
-        self.sub = None # ex: "CS"
-        self.cat_nbr = None # #ex: "249"
+        self.command = "" # ex: axe.lookup
+        self.search_code = "" # ex: CS249
+        self.search_szn = "" # ex: "spring"
+        self.search_year = "" # ex: "2018"
+        self.search_url = "" # ex: HTML SEARCH URL
+        self.sms_code = "" # ex: 1237
+        self.sub = "" # ex: "CS"
+        self.cat_nbr = "" # #ex: "249"
 
         # begin HTML searches
         self.url_list = None # List of URLS on page
@@ -120,3 +133,14 @@ class AxeBot:
                         "fall":"7",
                         "winter":"8"
                         }
+
+    def clear_search(self):
+        # custom bits
+        self.command = "" # ex: axe.lookup
+        self.search_code = "" # ex: CS249
+        self.search_szn = "" # ex: "spring"
+        self.search_year = "" # ex: "2018"
+        self.search_url = "" # ex: HTML SEARCH URL
+        self.sms_code = "" # ex: 1237
+        self.sub = "" # ex: "CS"
+        self.cat_nbr = "" # #ex: "249"

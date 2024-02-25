@@ -19,7 +19,7 @@ def get_class_dict( axeBot ): # Returns a list of classes
 
     # initialize variables
     url_list = axeBot.url_list
-    class_dict = None
+    course_list = None
 
     # ensure urls
     if url_list:
