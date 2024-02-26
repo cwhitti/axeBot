@@ -38,6 +38,7 @@ def get_class_dict( axeBot ): # Returns a list of classes
     units = None
     desig = None
     sems = None
+    offered = None
 
     # ensure urls
     if url_list:
@@ -47,6 +48,7 @@ def get_class_dict( axeBot ): # Returns a list of classes
 
             #get search soup
             search_soup = cls.get_search_soup(url)
+            sems = axeBot.search_year
 
             # get name, ID
             name = cls.get_course_name(search_soup)
@@ -56,12 +58,12 @@ def get_class_dict( axeBot ): # Returns a list of classes
             desc = cls.get_course_description(search_soup)
             units = cls.get_course_units(search_soup)
             desig = cls.get_course_designation(search_soup)
-            sems = cls.get_course_semesters(search_soup)
             prereqs = cls.get_course_prereqs(search_soup)
+            offered = cls.get_course_offered(search_soup)
 
             # create instance
-            course = Course( name, desc, units, desig, sems,
-                                            id, axeBot.sms_code, url, prereqs)
+            course = Course( name, desc, units, desig, sems, id,
+                            axeBot.sms_code, url, prereqs, offered)
 
             # add instance to list
             course_list.append(course)
@@ -77,6 +79,7 @@ def get_class_dict_short( search ):
     sems = None
     url = None
     prereqs = None
+    offered = None
 
     # Parse the course page HTML
     search_soup = get_search_soup( search.search_url )
@@ -89,8 +92,8 @@ def get_class_dict_short( search ):
 
         id = link['href'].split('=')[1].split('&')[0]
         name = link.get_text(strip=True)
-        course = Course(name, desc, units, desig, sems,
-                                        id, search.sms_code, url, prereqs)
+        course = Course(name, desc, units, desig, sems, id, search.sms_code,
+                        url, prereqs, offered)
         course_list.append( course )
 
     return course_list
@@ -109,7 +112,7 @@ def get_sms_code(axeBot):
 
     # initialize variables
     dict = axeBot.szn_dict
-    szn = axeBot.search_szn
+    szn = axeBot.search_szn.lower()
     year = axeBot.search_year
     dig_1 = "1"
 
@@ -125,7 +128,8 @@ def get_sms_code(axeBot):
 
         # use the default bits
         dig_2 = axeBot.dft_year[ 2 ]
-        dig_3 = year.dft_year[ 3 ]
+        dig_3 = axeBot.dft_year[ 3 ]
+        axeBot.search_year = axeBot.dft_year
 
     # check for correct season
     if ( szn in dict.keys() ):

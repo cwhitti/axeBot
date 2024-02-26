@@ -18,6 +18,8 @@ def get_course_id( url ):
             course_id_long = part.split('=')[1]
             course_id = course_id_long.split('&')[0]
 
+    return course_id
+
 def get_course_name(search_soup):
     return search_soup.find("h2").text
 
@@ -31,7 +33,7 @@ def get_course_description(search_soup):
         course_description = course_description[0:end_index] + cont_message
 
     return course_description
-    
+
 def get_course_units(search_soup):
     return search_soup.find("strong", text="Units:").find_next_sibling(text=True).strip()
 
@@ -40,10 +42,30 @@ def get_course_designation(search_soup):
         course_designation = search_soup.find("strong", text="Requirement Designation:").find_next_sibling(text=True).strip()
 
     except Exception as e:
-        pass
         course_designation = "Unspecified"
 
     return course_designation
+
+def get_course_offered(search_soup):
+
+    phrase = "Sections offered:"
+    semesters = "No"
+
+    try:
+        strong_tag = search_soup.find("strong", text=phrase)
+        if strong_tag:
+            # Find all the sibling <a> tags after the strong tag
+            semester_links = strong_tag.find_next_siblings("a")
+
+            # Extract the text from the found links
+            semesters = [link.text.strip() for link in semester_links]
+
+            semesters = ", ".join(semesters)
+    except Exception as e:
+        pass
+
+    # Join the extracted semesters into a single string
+    return semesters
 
 def get_course_prereqs(search_soup):
     prereq_search = [
@@ -66,24 +88,6 @@ def get_course_prereqs(search_soup):
             course_prerequisites = None
 
     return course_prerequisites
-def get_course_semesters(search_soup):
-
-    # Find the small tag containing the term information
-    small_tag = search_soup.find('small')
-
-    # Find the <small> tag within the <h1> tag
-    small_tag = search_soup.find('h1', class_='mb-4 mt-4').find('small')
-
-    # Extract the text within the <small> tag
-    text = small_tag.get_text()
-
-    # Split the text using newline and colon as delimiters
-    lines = text.split('\n')
-    for line in lines:
-        if "Term" in line:
-            course_semesters = line.split(":")[1].strip()
-
-    return course_semesters
 
 def get_urls(axeBot):
 
