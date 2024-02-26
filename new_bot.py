@@ -15,6 +15,8 @@ def run_discord_bot():
 
     prefix = axeBot.prefix
 
+    user_cooldowns = {}
+
     #Show bot logged on successfully
     @client.event
     async def on_ready():
@@ -35,6 +37,16 @@ def run_discord_bot():
         # grab message contents
         if msg.content.startswith( prefix ):
 
+            if axeBot.check_cooldown( msg, user_cooldowns ):
+
+                embed = discord.Embed(title=f"Rate Limit!",
+                    description="Please wait another few seconds before using this command.",
+                    color=axeBot.color)
+
+                await msg.channel.send(embed=embed)
+
+                return 0
+
             # Get command - axe.lookup
             command = args[0].lower()
 
@@ -44,12 +56,13 @@ def run_discord_bot():
                 # Grab the command
                 selected_option = axeBot.cmd_dict.get( command )
 
+                async with msg.channel.typing():
                 # create working embed
-                embed = eu.embed_working( axeBot )
-                await msg.channel.send(embed=embed)
+                #embed = eu.embed_working( axeBot )
+                #await msg.channel.send(embed=embed)
 
                 # begin typing
-                async with msg.channel.typing():
+
 
                     # create the embed list
                     embeds = axeBot.cmd_dict[command][0](msg, args, argc)
@@ -57,5 +70,13 @@ def run_discord_bot():
                     for embed in embeds:
 
                         await msg.channel.send(embed=embed)
+            else:
 
+                embed = discord.Embed(title="Uh Oh!",
+                    description="Command not recognized",
+                    color=axeBot.color)
+
+                embed.set_footer( text=f"(!) Commands can be found with {axeBot.prefix}help")
+
+                await msg.channel.send(embed=embed)
     client.run( axeBot.token )
