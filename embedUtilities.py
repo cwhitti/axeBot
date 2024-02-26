@@ -1,6 +1,14 @@
 import discord
 from classes import name_list
 
+
+def bad_lookup_embed( search, msg ):
+
+    embed = discord.Embed(title="Sorry",
+        description=f"'{msg}' is not a valid search.", color=search.color)
+
+    return [embed]
+
 def create_help_embed(axeBot):
 
     embed = discord.Embed(title="Axe Bot Help",
