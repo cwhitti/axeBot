@@ -41,19 +41,20 @@ def create_help_embed(axeBot):
     pfx = axeBot.prefix
 
     desc = ("This bot was created to search up classes from the comfort",
-            "of Discord. Because looking for classes can be annoying,",
-            "the creators of this bot wanted a novel way to search them up.",
+            " of Discord. Because looking for classes can be annoying,",
+            " the creators of this bot wanted a novel way to search them up.",
             "\n\n",
-            "The basic",
-            f"format is  '{axeBot.prefix}lookup <XXX000> <season> <year>'\n\n",
+
             "Usage examples:\n",
-            f"  -{pfx}lookup CS249\n",
-            f"  -{pfx}lookup eng\n",
-            f"  -{pfx}lookup BIO 181 Spring 2011\n",
-            f"  -{pfx}lookup ANT winter 2022\n",
-            f"  -{pfx}lookup cs212 summer 2017\n\n",
+            f"- {pfx}lookup CS249\n",
+            f"- {pfx}lookup BIO 181L Spring 2011    \n",
+            f"- {pfx}lookup ANT winter 2022        \n",
+            f"- {pfx}lookup cs212 summer 2017      \n",
+            f"- {pfx}lookup eng      \n",
+            f"- {pfx}subjects                    \n",
+            f"- {pfx}invite                    \n\n",
             f"(!) This bot is not affiliated, sponsored, nor endorsed by NAU (!) \n\n",
-            "All commands:"
+            "==============   All Commands  =============="
         )
 
     embed = discord.Embed(title="Hello from axeBot!",
