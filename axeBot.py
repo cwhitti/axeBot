@@ -62,18 +62,19 @@ class AxeBot:
                 if argc == 4:
 
                     # axe.lookup cs       249 [fall 2023]
-                    if ( args[1].isalpha() and args[2].isdigit() ):
+                    #if ( args[1].isalpha() and args[2].isdigit() ):
 
-                        search.search_code = args[1] + args[2] # combine - CS+249
-                        year_pos = 4
+                    #    search.search_code = args[1] + args[2] # combine - CS+249
+                    #    year_pos = 3
 
                     #axe.lookup cs249 [fall 2023]
-                    else:
+                    #else:
                         search.search_code = args[1]
                         year_pos = 3
 
                 if argc > 4:
                     search.search_code = args[1] + args[2] # combine - CS+249
+                    year_pos = 4
 
                 if (argc == year_pos + 1):
                     # ensure correct szn
@@ -124,8 +125,11 @@ class AxeBot:
         perms = f"&permissions={self.permissions}"
         scope = f"&scope={self.scope}"
 
+        url = addr + client_id + perms + scope
+
         # return url
-        return addr + client_id + perms + scope
+        return [invite_embed( self, url )]
+
 
     def __init__(self):
         # variables
@@ -160,10 +164,10 @@ class AxeBot:
                         #                        self.random,
                         #                        "Generate a random class"
                         #                        ),
-                        #self.prefix + "invite":(
-                        #                        self.invite,
-                        #                        "Invite the bots"
-                        #                        ),
+                        self.prefix + "invite":(
+                                                self.get_invite,
+                                                "Invite axeBot to your own server"
+                                                ),
                         self.prefix + "github":(
                                                 self.github,
                                                 "View the bot's code!"

@@ -57,12 +57,6 @@ def run_discord_bot():
                 selected_option = axeBot.cmd_dict.get( command )
 
                 async with msg.channel.typing():
-                # create working embed
-                #embed = eu.embed_working( axeBot )
-                #await msg.channel.send(embed=embed)
-
-                # begin typing
-
 
                     # create the embed list
                     embeds = axeBot.cmd_dict[command][0](msg, args, argc)

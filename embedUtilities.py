@@ -69,7 +69,7 @@ def embed_courses( axeBot ):
     elif len(course_list) > 5:
 
         total_items = len(course_list)
-        items_per_embed = 24 # discord embed limit
+        items_per_embed = 25 # discord embed limit
 
         first = True
 
@@ -112,22 +112,26 @@ def one_embed_course(axeBot, course):
     course_semesters = course.semesters
     course_id = course.id
     course_url = course.url
+    course_prereqs = course.prereqs
 
     embed = discord.Embed(title=course_name, description="", color=axeBot.color)
 
     embed.add_field(name="Course ID:",
         value=course_id,
         inline=False)
-    embed.add_field(name="Course Description:",
+    embed.add_field(name="Description:",
         value=course_description,
         inline=False)
-    embed.add_field(name="Course Units:",
+    embed.add_field(name="Units:",
         value=course_units,
         inline=False)
-    embed.add_field(name="Course Semesters:",
+    embed.add_field(name="Semesters:",
         value=course_semesters,
         inline=False)
-    embed.add_field(name="Course Designation:",
+    embed.add_field(name="Prerequisites:",
+        value=course_prereqs,
+        inline=False)
+    embed.add_field(name="Requirement Designation:",
         value=course_designation,
         inline=False)
     embed.add_field(name="",
@@ -147,9 +151,19 @@ def embed_working( axeBot ):
 def github_embed( axeBot ):
 
     embed = discord.Embed(title="GitHub Link",
-                        description=f"[Click here for the GitHub Link!]({axeBot.gitLink})",
+                        description=f"Click [here]({axeBot.gitLink}) for the GitHub Link!",
                         color=axeBot.color)
 
     embed.set_footer(text="Thank you for enjoying axeBot :)")
 
     return [embed]
+
+def invite_embed( axeBot, url ):
+
+    embed = discord.Embed(title="Invite me!",
+                        description=f"Click [here]({url}) to invite axeBot to your server!",
+                        color=axeBot.color)
+
+    embed.set_footer(text="Thank you for enjoying axeBot :)")
+
+    return embed
