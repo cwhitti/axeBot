@@ -58,12 +58,35 @@ def run_discord_bot():
 
                 async with msg.channel.typing():
 
-                    # create the embed list
-                    embeds = axeBot.cmd_dict[command][0](msg, args, argc)
+                    try:
+                        # create the embed list
+                        embeds = axeBot.cmd_dict[command][0](msg, args, argc)
 
-                    for embed in embeds:
+                        for embed in embeds:
+
+                            await msg.channel.send(embed=embed)
+
+                    except TypeError as e:
+
+                        embed = discord.Embed(title=f"{axeBot.search_code}",
+                            description=f"Sorry, we couldn't find this class",
+                            color=axeBot.color)
 
                         await msg.channel.send(embed=embed)
+
+                        raise e
+
+                    except Exception as e:
+
+                        embed = discord.Embed(title="Uh Oh!",
+                            description=f"axeBot made a mistake: {e}",
+                            color=axeBot.color)
+
+                        embed.set_footer( text=f"Don't worry! Try a new commmand!")
+
+                        await msg.channel.send(embed=embed)
+
+                        raise e
             else:
 
                 embed = discord.Embed(title="Uh Oh!",

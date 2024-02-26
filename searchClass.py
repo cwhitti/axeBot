@@ -29,3 +29,17 @@ class Search:
                         "fall":"7",
                         "winter":"8"
                         }
+
+    def clear_search( self ):
+
+        self.dft_szn = ""
+        self.dft_year = ""
+        self.dft_term = ""
+        self.search_code = "" # ex: CS249
+        self.search_szn = "" # ex: "spring"
+        self.search_year = "" # ex: "2018"
+        self.search_url = "" # ex: HTML SEARCH URL
+        self.sms_code = "" # ex: 1237
+        self.sub = "" # ex: "CS"
+        self.cat_nbr = "" # #ex: "249"
+        self.ending = ""

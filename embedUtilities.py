@@ -2,7 +2,7 @@ import discord
 from classes import name_list
 
 
-def bad_lookup_embed( search, attempt ):
+def bad_lookup_embed( search, msg ):
 
     embed = discord.Embed(title="Sorry",
         description=f"'{msg}' is not a valid search.", color=search.color)
@@ -38,16 +38,34 @@ def create_subjects_embed(axeBot, name_list):
 
 def create_help_embed(axeBot):
 
-    embed = discord.Embed(title="Axe Bot Help",
-        description="List of available commands:", color=axeBot.color)
+    pfx = axeBot.prefix
+
+    desc = ("This bot was created to search up classes from the comfort",
+            "of Discord. Because looking for classes can be annoying,",
+            "the creators of this bot wanted a novel way to search them up.",
+            "\n\n",
+            "The basic",
+            f"format is  '{axeBot.prefix}lookup <XXX000> <season> <year>'\n\n",
+            "Usage examples:\n",
+            f"  -{pfx}lookup CS249\n",
+            f"  -{pfx}lookup eng\n",
+            f"  -{pfx}lookup BIO 181 Spring 2011\n",
+            f"  -{pfx}lookup ANT winter 2022\n",
+            f"  -{pfx}lookup cs212 summer 2017\n\n",
+            f"(!) This bot is not affiliated, sponsored, nor endorsed by NAU (!) \n\n",
+            "All commands:"
+        )
+
+    embed = discord.Embed(title="Hello from axeBot!",
+                            description=''.join(desc), color=axeBot.color)
 
     for command in axeBot.cmd_dict.keys():
 
         desc = axeBot.cmd_dict[command][1]
 
         embed.add_field(name=command, value=desc,inline=False)
-
-    embed.set_footer(text="(!) This bot is not affiliated, sponsored, nor endorsed by NAU.")
+    embed.set_thumbnail(url="https://i.pinimg.com/564x/4a/25/80/4a25805f04f4ba694d9fff4a41426799.jpg")
+    embed.set_footer(text="Created by Claire Whittington (Data Science '25)")
 
     return embed
 
@@ -103,18 +121,19 @@ def batch_embed_course(axeBot, course_list, first_embed):
 
     return embed
 
-def one_embed_course(axeBot, course):
+def one_embed_course(search, course):
 
     course_name = course.name
     course_description = course.desc
     course_units = course.units
     course_designation = course.desig
-    course_semesters = course.semesters
+    course_semesters = course.offered
     course_id = course.id
     course_url = course.url
     course_prereqs = course.prereqs
+    course_cat = search.search_year
 
-    embed = discord.Embed(title=course_name, description="", color=axeBot.color)
+    embed = discord.Embed(title=course_name, description="", color=search.color)
 
     embed.add_field(name="Course ID:",
         value=course_id,
@@ -125,7 +144,7 @@ def one_embed_course(axeBot, course):
     embed.add_field(name="Units:",
         value=course_units,
         inline=False)
-    embed.add_field(name="Semesters:",
+    embed.add_field(name="Current Offerings:",
         value=course_semesters,
         inline=False)
     embed.add_field(name="Prerequisites:",
@@ -137,6 +156,8 @@ def one_embed_course(axeBot, course):
     embed.add_field(name="",
         value=f"[Course Link]({course_url})",
         inline=False)
+
+    embed.set_footer(text=f"Based on {course_cat} catalogue")
 
     return embed
 

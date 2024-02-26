@@ -35,6 +35,7 @@ class AxeBot:
             if argc == 2:
 
                 search.search_code = args[1].upper() #BIO, CS249
+                search.search_year = search.dft_year
                 search.sms_code = search.dft_term #1237
 
                 if search.search_code in name_list: # ---> axe.lookup BIO
@@ -46,7 +47,7 @@ class AxeBot:
                     search.search_url = create_search_url( search )
                     search.course_list = get_class_dict_short( search )
 
-                    if len( search.course_list )  > 0:
+                    if len( search.course_list ) > 0:
                         return embed_courses( search )
 
                 else: # CS249 --->
@@ -94,6 +95,8 @@ class AxeBot:
             search.url_list = get_urls( search )
             search.course_list = get_class_dict( search )
 
+            #self.search_code = search.search_code
+
             if len( search.course_list )  > 0:
                 return embed_courses( search )
 
@@ -105,9 +108,6 @@ class AxeBot:
 
     def help(self, msg, args, argc):
         return [create_help_embed( self )]
-
-    def invite(self, msg, args, argc):
-        return 0
 
     def github(self, msg, args, argc):
 
@@ -145,6 +145,7 @@ class AxeBot:
         self.dft_szn = "fall"
         self.dft_year = "2024"
         self.dft_term = "1247"
+        self.search_code = ""
 
         # Command dict
         self.cmd_dict = {
@@ -154,7 +155,7 @@ class AxeBot:
                                                 ),
                         self.prefix + "lookup": (
                                                 self.lookup,
-                                                "Look up a specific class"
+                                                f"Look up a specific class\nFormat: {self.prefix}lookup <XXX000> <season> <year>"
                                                 ),
                         self.prefix + "subjects":(
                                                 self.subjects,
