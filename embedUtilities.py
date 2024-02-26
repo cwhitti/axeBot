@@ -2,10 +2,12 @@ import discord
 from classes import name_list
 
 
-def bad_lookup_embed( search, msg ):
+def bad_lookup_embed( axeBot, msg ):
 
     embed = discord.Embed(title="Sorry",
-        description=f"'{msg}' is not a valid search.", color=search.color)
+        description=f"'{msg}' is not a valid search.", color=axeBot.color)
+
+    embed.set_footer( text=f"(!) Commands can be found with {axeBot.prefix}help")
 
     return [embed]
 
@@ -133,6 +135,7 @@ def one_embed_course(search, course):
     course_url = course.url
     course_prereqs = course.prereqs
     course_cat = search.search_year
+    szn = search.search_szn
 
     embed = discord.Embed(title=course_name, description="", color=search.color)
 
@@ -158,7 +161,7 @@ def one_embed_course(search, course):
         value=f"[Course Link]({course_url})",
         inline=False)
 
-    embed.set_footer(text=f"Based on {course_cat} catalogue")
+    embed.set_footer(text=f"Based on {szn} {course_cat} catalogue")
 
     return embed
 
