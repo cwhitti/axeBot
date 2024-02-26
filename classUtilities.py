@@ -31,6 +31,7 @@ def get_course_description(search_soup):
         course_description = course_description[0:end_index] + cont_message
 
     return course_description
+    
 def get_course_units(search_soup):
     return search_soup.find("strong", text="Units:").find_next_sibling(text=True).strip()
 
@@ -44,6 +45,27 @@ def get_course_designation(search_soup):
 
     return course_designation
 
+def get_course_prereqs(search_soup):
+    prereq_search = [
+    "Prerequisite:",
+    "Prerequisite or Corequisite:",
+    "Prerequisite or Corequisite: ",
+    "Pre- or Corequisite:",
+    "Corequisite:"
+    ]
+
+    for phrase in prereq_search:
+        try:
+            course_prerequisites = search_soup.find("strong", text=phrase).find_next_sibling(text=True).strip()
+
+            if course_prerequisites:
+                break
+
+        except Exception as e:
+            pass
+            course_prerequisites = None
+
+    return course_prerequisites
 def get_course_semesters(search_soup):
 
     # Find the small tag containing the term information

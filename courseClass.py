@@ -1,6 +1,7 @@
 class Course:
 
-    def __init__(self, name, desc, units, desig, semesters, course_id, term, url):
+    def __init__(self, name, desc, units, desig, semesters, course_id, term, url,
+                prereqs):
 
         self.name = name
         self.desc = desc
@@ -10,3 +11,4 @@ class Course:
         self.id = course_id
         self.term = term
         self.url = url
+        self.prereqs = prereqs

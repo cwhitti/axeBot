@@ -57,10 +57,11 @@ def get_class_dict( axeBot ): # Returns a list of classes
             units = cls.get_course_units(search_soup)
             desig = cls.get_course_designation(search_soup)
             sems = cls.get_course_semesters(search_soup)
+            prereqs = cls.get_course_prereqs(search_soup)
 
             # create instance
             course = Course( name, desc, units, desig, sems,
-                                            id, axeBot.sms_code, url)
+                                            id, axeBot.sms_code, url, prereqs)
 
             # add instance to list
             course_list.append(course)
@@ -75,6 +76,7 @@ def get_class_dict_short( search ):
     desig = None
     sems = None
     url = None
+    prereqs = None
 
     # Parse the course page HTML
     search_soup = get_search_soup( search.search_url )
@@ -88,7 +90,7 @@ def get_class_dict_short( search ):
         id = link['href'].split('=')[1].split('&')[0]
         name = link.get_text(strip=True)
         course = Course(name, desc, units, desig, sems,
-                                        id, search.sms_code, url)
+                                        id, search.sms_code, url, prereqs)
         course_list.append( course )
 
     return course_list
