@@ -20,6 +20,9 @@ def run_discord_bot():
     #Show bot logged on successfully
     @client.event
     async def on_ready():
+
+        sts = f"Try {prefix}help!"
+        await client.change_presence(activity=discord.Game(name=sts))
         print(f'{client.user} is now running!')
 
     # handle message
