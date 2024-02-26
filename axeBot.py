@@ -1,4 +1,5 @@
 import secret as sc
+import time
 from botUtilities import *
 from classUtilities import *
 from embedUtilities import *
@@ -6,6 +7,14 @@ from classes import name_list
 from searchClass import Search
 
 class AxeBot:
+
+    def check_cooldown(self, msg, user_cooldowns):
+
+        if ( msg.author.id in user_cooldowns ) and ( time.time() - user_cooldowns[msg.author.id ] < self.wait_limit ):
+            return True
+
+        user_cooldowns[msg.author.id] = time.time()
+        return False
 
     def lookup(self, msg, args, argc):
 
@@ -103,6 +112,10 @@ class AxeBot:
 
         return github_embed( self )
 
+    def subjects(self, msg, args, argc):
+
+        return [ create_subjects_embed( self, name_list ) ]
+
     def get_invite(self, msg, args, argc):
 
         # build url
@@ -120,6 +133,7 @@ class AxeBot:
         self.prefix = sc.PREFIX
         self.color = 0x4287f5
         self.owner_id = 343857226982883339
+        self.wait_limit = 5
         self.gitLink = "https://github.com/cwhitti/axeBot"
         self.client_id = "1137314880697937940"
         self.permissions = "117824"
@@ -130,18 +144,22 @@ class AxeBot:
 
         # Command dict
         self.cmd_dict = {
+                        self.prefix + "help": (
+                                                self.help,
+                                                "List of commands"
+                                                ),
                         self.prefix + "lookup": (
                                                 self.lookup,
                                                 "Look up a specific class"
+                                                ),
+                        self.prefix + "subjects":(
+                                                self.subjects,
+                                                "See all course subjects"
                                                 ),
                         #self.prefix + "random":(
                         #                        self.random,
                         #                        "Generate a random class"
                         #                        ),
-                        self.prefix + "help":(
-                                                self.help,
-                                                "Use the help menu"
-                                                ),
                         #self.prefix + "invite":(
                         #                        self.invite,
                         #                        "Invite the bots"
@@ -151,28 +169,3 @@ class AxeBot:
                                                 "View the bot's code!"
                                                 ),
                         }
-
-
-    def clear_search(self):
-        # custom bits
-        self.command = "" # ex: axe.lookup
-        self.search_code = "" # ex: CS249
-        self.search_szn = "" # ex: "spring"
-        self.search_year = "" # ex: "2018"
-        self.search_url = "" # ex: HTML SEARCH URL
-        self.sms_code = "" # ex: 1237
-        self.sub = "" # ex: "CS"
-        self.cat_nbr = "" # # ex: "249"
-        self.ending = "" # ex: "WH"
-
-        # clear lists
-        self.clear_url_list()
-        self.clear_course_list()
-
-    def clear_url_list(self):
-
-        self.url_list.clear()
-
-    def clear_course_list(self):
-
-        self.course_list.clear()

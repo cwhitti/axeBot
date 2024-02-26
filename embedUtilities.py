@@ -9,6 +9,33 @@ def bad_lookup_embed( search, attempt ):
 
     return [embed]
 
+def create_subjects_embed(axeBot, name_list):
+
+    embed = discord.Embed(title="NAU Subjects",
+        description="List of available topics:",
+        color=axeBot.color)
+
+    start_letter = 'A'
+    name_string = ""
+
+    for name in name_list:
+
+        if name_string != "":
+
+            if name[0] == start_letter:
+                name_string += f", {name}"
+
+            else:
+                embed.add_field(name="", value=name_string, inline=False)
+                start_letter = name[0]
+                name_string = ""
+        else:
+            name_string = f"{name}"
+
+    embed.add_field(name="", value=name_string, inline=False)
+
+    return embed
+
 def create_help_embed(axeBot):
 
     embed = discord.Embed(title="Axe Bot Help",
@@ -122,7 +149,7 @@ def github_embed( axeBot ):
     embed = discord.Embed(title="GitHub Link",
                         description=f"[Click here for the GitHub Link!]({axeBot.gitLink})",
                         color=axeBot.color)
-                        
+
     embed.set_footer(text="Thank you for enjoying axeBot :)")
 
     return [embed]
