@@ -79,7 +79,6 @@ class AxeBot:
                 search.sms_code = get_sms_code( search )
                 search.sub, search.cat_nbr = get_sub_nbr( search )
 
-
             # do the search
             search.search_url = create_search_url( search )
             search.url_list = get_urls( search )
@@ -91,83 +90,18 @@ class AxeBot:
         else:
             return bad_lookup_embed( self, msg.content )
 
-    '''
-        # ex: axe.lookup SJFHKSDHFKSDJ
-        if argc <= 2 and args[1].upper() not in name_list:
-
-            return []
-
-        # ex: axe.lookup bio, axe.lookup cs249
-        if argc == 2:
-
-            search.search_code = args[1] #BIO, CS249
-            search.sms_code = search.dft_term #1237
-
-            # axe.lookup bio
-            if args[1].upper() in name_list:
-
-                # add subject and default term
-                search.sub = args[1].upper() # BIO
-
-            #axe.lookup cs249
-            else:
-                #CS, 249
-                search.sub, search.cat_nbr = get_sub_nbr( search )
-
-                print(search.sub, search.cat_nbr)
-
-
-        # axe.lookup cs     249 fall 2023,
-        # axe.lookup cs249 fall 2023
-        # axe.lookup cs     249
-        if argc > 2:
-
-            # axe.lookup cs       249 [fall 2023]
-            if ( args[1].isalpha() and args[2].isdigit() ):
-                search.search_code = args[1] + args[2] # combine - CS249
-                year_pos = 4
-
-            #axe.lookup cs249 [fall 2023]
-            else:
-                year_pos = 3
-
-            search.sub, search.cat_nbr = get_sub_nbr( search )
-
-            # szn + year was specified - 2005
-            if ( argc == year_pos + 1):
-
-                # ensure correct szn
-                search.search_szn = args[ year_pos - 1 ]
-                search.search_year = args[ year_pos ]
-
-            # Year was not specified
-            else:
-                search.search_szn = search.dft_szn
-                search.search_year = search.dft_year
-
-            search.sms_code = get_sms_code( search )
-            search.search_url = create_search_url( search )
-            search.url_list = get_urls( search )
-            search.course_list = get_class_dict( search )
-
-            if ( len(search.course_list) > 0 ):
-                search.course_list = get_class_dict( search )
-                return embed_courses( search )
-
-            else:
-                print("Doesnt exit")
-                return []
-
-        return []
-    '''
     def random(self, msg, args, argc):
         return 0
 
     def help(self, msg, args, argc):
-        return create_help_embed( self )
+        return [create_help_embed( self )]
 
     def invite(self, msg, args, argc):
         return 0
+
+    def github(self, msg, args, argc):
+
+        return github_embed( self )
 
     def get_invite(self, msg, args, argc):
 
@@ -186,6 +120,7 @@ class AxeBot:
         self.prefix = sc.PREFIX
         self.color = 0x4287f5
         self.owner_id = 343857226982883339
+        self.gitLink = "https://github.com/cwhitti/axeBot"
         self.client_id = "1137314880697937940"
         self.permissions = "117824"
         self.scope = "bot"
@@ -199,19 +134,24 @@ class AxeBot:
                                                 self.lookup,
                                                 "Look up a specific class"
                                                 ),
-                        self.prefix + "random":(
-                                                self.random,
-                                                "Generate a random class"
-                                                ),
+                        #self.prefix + "random":(
+                        #                        self.random,
+                        #                        "Generate a random class"
+                        #                        ),
                         self.prefix + "help":(
                                                 self.help,
                                                 "Use the help menu"
                                                 ),
-                        self.prefix + "invite":(
-                                                self.invite,
-                                                "Invite the bots"
+                        #self.prefix + "invite":(
+                        #                        self.invite,
+                        #                        "Invite the bots"
+                        #                        ),
+                        self.prefix + "github":(
+                                                self.github,
+                                                "View the bot's code!"
                                                 ),
                         }
+
 
     def clear_search(self):
         # custom bits

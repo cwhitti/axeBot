@@ -2,7 +2,7 @@ import discord
 from classes import name_list
 
 
-def bad_lookup_embed( search, msg ):
+def bad_lookup_embed( search, attempt ):
 
     embed = discord.Embed(title="Sorry",
         description=f"'{msg}' is not a valid search.", color=search.color)
@@ -116,3 +116,13 @@ def embed_working( axeBot ):
     embed.set_footer(text="This process may take up to one minute.")
 
     return embed
+
+def github_embed( axeBot ):
+
+    embed = discord.Embed(title="GitHub Link",
+                        description=f"[Click here for the GitHub Link!]({axeBot.gitLink})",
+                        color=axeBot.color)
+                        
+    embed.set_footer(text="Thank you for enjoying axeBot :)")
+
+    return [embed]
