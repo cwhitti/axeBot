@@ -12,61 +12,154 @@ class AxeBot:
         search = Search( self.dft_szn, self.dft_year,
                          self.dft_term, self.color )
 
-        # ex: axe.lookup cs249, axe.lookup bio
+        # check if argc > 1
+        if argc > 1:
+
+            # pick args[1]
+            arg1 = args[1]
+
+            if not correct_start( arg1.upper(), name_list):
+
+                return bad_lookup_embed( self, msg.content )
+
+            # axe.lookup cs249, axe.lookup BIO
+            if argc == 2:
+
+                search.search_code = args[1].upper() #BIO, CS249
+                search.sms_code = search.dft_term #1237
+
+                if search.search_code in name_list: # ---> axe.lookup BIO
+
+                    # add subject and default term[[
+                    search.sub = search.search_code # BIO
+
+                    ## DEFINITELY WANT SHORT DICT!!! ###
+                    search.search_url = create_search_url( search )
+                    search.course_list = get_class_dict_short( search )
+
+                    if len( search.course_list )  > 0:
+                        return embed_courses( search )
+
+                else: # CS249 --->
+                    search.sub, search.cat_nbr = get_sub_nbr( search )
+
+            else:
+
+                year_pos = -1
+
+                if argc == 3:
+                    search.search_code = args[1] + args[2]
+
+                if argc == 4:
+
+                    # axe.lookup cs       249 [fall 2023]
+                    if ( args[1].isalpha() and args[2].isdigit() ):
+
+                        search.search_code = args[1] + args[2] # combine - CS+249
+                        year_pos = 4
+
+                    #axe.lookup cs249 [fall 2023]
+                    else:
+                        search.search_code = args[1]
+                        year_pos = 3
+
+                if argc > 4:
+                    search.search_code = args[1] + args[2] # combine - CS+249
+
+                if (argc == year_pos + 1):
+                    # ensure correct szn
+                    search.search_szn = args[ year_pos - 1 ]
+                    search.search_year = args[ year_pos ]
+
+                # Year was not specified
+                else:
+                    search.search_szn = search.dft_szn
+                    search.search_year = search.dft_year
+
+                search.sms_code = get_sms_code( search )
+                search.sub, search.cat_nbr = get_sub_nbr( search )
+
+
+            # do the search
+            search.search_url = create_search_url( search )
+            search.url_list = get_urls( search )
+            search.course_list = get_class_dict( search )
+
+            if len( search.course_list )  > 0:
+                return embed_courses( search )
+
+        else:
+            return bad_lookup_embed( self, msg.content )
+
+    '''
+        # ex: axe.lookup SJFHKSDHFKSDJ
+        if argc <= 2 and args[1].upper() not in name_list:
+
+            return []
+
+        # ex: axe.lookup bio, axe.lookup cs249
         if argc == 2:
 
-            # Full class lookup - cs249
-            search.search_code = args[1]
-            year_pos = 3
+            search.search_code = args[1] #BIO, CS249
+            search.sms_code = search.dft_term #1237
 
-            # check for just subject lookup - ex: axe.lookup bio
+            # axe.lookup bio
             if args[1].upper() in name_list:
 
                 # add subject and default term
-                search.sub = args[1].upper()
-                search.sms_code = search.dft_term
+                search.sub = args[1].upper() # BIO
 
-                # get search URL
-                search.search_url = create_search_url( search )
-                search.course_list = get_class_dict_short( search )
+            #axe.lookup cs249
+            else:
+                #CS, 249
+                search.sub, search.cat_nbr = get_sub_nbr( search )
 
-                if len( search.course_list )  > 0:
-                    return embed_courses( search )
+                print(search.sub, search.cat_nbr)
 
-        # ex: CS     249
-        if ( args[1].isalpha() and args[2].isdigit() ):
-            search.search_code = args[1] + args[2] # combine - CS249
-            year_pos = 4
 
-        search.sub, search.cat_nbr = get_sub_nbr( search )
+        # axe.lookup cs     249 fall 2023,
+        # axe.lookup cs249 fall 2023
+        # axe.lookup cs     249
+        if argc > 2:
 
-        # szn + year was specified - 2005
-        if ( argc == year_pos + 1):
+            # axe.lookup cs       249 [fall 2023]
+            if ( args[1].isalpha() and args[2].isdigit() ):
+                search.search_code = args[1] + args[2] # combine - CS249
+                year_pos = 4
 
-            # ensure correct szn
-            search.search_szn = args[ year_pos - 1 ]
-            search.search_year = args[ year_pos ]
+            #axe.lookup cs249 [fall 2023]
+            else:
+                year_pos = 3
 
-        # Year was not specified
-        else:
-            search.search_szn = search.dft_szn
-            search.search_year = search.dft_year
+            search.sub, search.cat_nbr = get_sub_nbr( search )
 
-        search.sms_code = get_sms_code( search )
-        search.search_url = create_search_url( search )
-        search.url_list = get_urls( search )
-        search.course_list = get_class_dict( search )
+            # szn + year was specified - 2005
+            if ( argc == year_pos + 1):
 
-        if ( len(search.course_list) > 0 ):
+                # ensure correct szn
+                search.search_szn = args[ year_pos - 1 ]
+                search.search_year = args[ year_pos ]
+
+            # Year was not specified
+            else:
+                search.search_szn = search.dft_szn
+                search.search_year = search.dft_year
+
+            search.sms_code = get_sms_code( search )
+            search.search_url = create_search_url( search )
+            search.url_list = get_urls( search )
             search.course_list = get_class_dict( search )
-            return embed_courses( search )
 
-        else:
-            print("Doesnt exit")
-            return []
+            if ( len(search.course_list) > 0 ):
+                search.course_list = get_class_dict( search )
+                return embed_courses( search )
+
+            else:
+                print("Doesnt exit")
+                return []
 
         return []
-
+    '''
     def random(self, msg, args, argc):
         return 0
 

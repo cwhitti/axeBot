@@ -16,6 +16,19 @@ def create_search_url( axeBot ):
     return url
     #return f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={cat_nbr}&term={semester_code}"
 
+def correct_start( arg1, name_list ):
+
+    matches = re.findall(r'[A-Za-z]+|\d+', arg1)
+
+    letters = matches[0]
+
+    # fail out if arg[1] does not startwith in name list
+    for name in name_list:
+        if letters == name:
+            return True
+
+    return False
+
 def get_class_dict( axeBot ): # Returns a list of classes
 
     # initialize variables
@@ -149,5 +162,8 @@ def get_sub_nbr(axeBot):
 
     # handle "CS249"
     matches = re.findall(r'[A-Za-z]+|\d+', extract)
+
+    # Ensure matches contains exactly 2 items
+    matches += [''] * (2 - len(matches))
 
     return matches[0], matches[1]
