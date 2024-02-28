@@ -3,8 +3,11 @@ import time
 from botUtilities import *
 from classUtilities import *
 from embedUtilities import *
+from gradeLookupUtilities import *
 from classes import name_list
 from searchClass import Search
+
+DEBUG_FLAG = True
 
 class AxeBot:
 
@@ -16,20 +19,21 @@ class AxeBot:
         user_cooldowns[msg.author.id] = time.time()
         return False
 
-    def lookup(self, msg, args, argc):
+    def parse_search(self, msg, args, argc, search):
 
-        search = Search( self.dft_szn, self.dft_year,
-                         self.dft_term, self.color )
+        search.search_szn = search.dft_szn
+        search.search_year = search.dft_year
 
         # check if argc > 1
         if argc > 1:
+
+            TYPE = "LONG"
 
             # pick args[1]
             arg1 = args[1]
 
             if not correct_start( arg1.upper(), name_list):
-
-                return bad_lookup_embed( self, msg.content )
+                return False
 
             # axe.lookup cs249, axe.lookup BIO
             if argc == 2:
@@ -40,19 +44,19 @@ class AxeBot:
 
                 if search.search_code in name_list: # ---> axe.lookup BIO
 
+                    TYPE = "SHORT"
+
                     # add subject and default term[[
                     search.sub = search.search_code # BIO
 
                     ## DEFINITELY WANT SHORT DICT!!! ###
-                    search.search_url = create_search_url( search )
-                    search.course_list = get_class_dict_short( search )
-
-                    if len( search.course_list ) > 0:
-                        return embed_courses( search )
+                    #search.search_url = create_search_url( search )
+                    #search.course_list = get_class_dict_short( search )
 
                 else: # CS249 --->
                     search.sub, search.cat_nbr = get_sub_nbr( search )
 
+            # axe.lookup cs249 Fall, axe.lookup BIO181 Fall 2022
             else:
 
                 year_pos = -1
@@ -61,47 +65,50 @@ class AxeBot:
                     search.search_code = args[1] + args[2]
 
                 if argc == 4:
-
-                    # axe.lookup cs       249 [fall 2023]
-                    #if ( args[1].isalpha() and args[2].isdigit() ):
-
-                    #    search.search_code = args[1] + args[2] # combine - CS+249
-                    #    year_pos = 3
-
-                    #axe.lookup cs249 [fall 2023]
-                    #else:
-                        search.search_code = args[1]
-                        year_pos = 3
+                    search.search_code = args[1]
+                    year_pos = 3
 
                 if argc > 4:
                     search.search_code = args[1] + args[2] # combine - CS+249
                     year_pos = 4
 
                 if (argc == year_pos + 1):
-                    # ensure correct szn
+
                     search.search_szn = args[ year_pos - 1 ]
                     search.search_year = args[ year_pos ]
-
-                # Year was not specified
-                else:
-                    search.search_szn = search.dft_szn
-                    search.search_year = search.dft_year
 
                 search.sms_code = get_sms_code( search )
                 search.sub, search.cat_nbr = get_sub_nbr( search )
 
-            # do the search
-            search.search_url = create_search_url( search )
-            search.url_list = get_urls( search )
-            search.course_list = get_class_dict( search )
+            search.all_requests( TYPE )
 
-            #self.search_code = search.search_code
+        if len( search.course_list ) > 0 :
+            return True
 
-            if len( search.course_list )  > 0:
-                return embed_courses( search )
+        return False
 
-        else:
-            return bad_lookup_embed( self, msg.content )
+    def lookup(self, msg, args, argc):
+
+        search = Search( self.dft_szn, self.dft_year,
+                         self.dft_term, self.color )
+
+        if self.parse_search( msg, args, argc, search):
+            return embed_courses( search )
+
+        return bad_lookup_embed( self, msg.content )
+
+    def grades(self, msg, args, argc):
+
+        search = Search( self.dft_szn, self.dft_year,
+                         self.dft_term, self.color )
+
+        if self.parse_search( msg, args, argc, search):
+
+            grades = get_grades( search )
+            return []
+
+        return bad_lookup_embed( self, msg.content )
+
 
     def random(self, msg, args, argc):
         return 0
@@ -130,7 +137,6 @@ class AxeBot:
         # return url
         return [invite_embed( self, url )]
 
-
     def __init__(self):
         # variables
         self.token = sc.TOKEN
@@ -144,7 +150,7 @@ class AxeBot:
         self.scope = "bot"
         self.dft_szn = "fall"
         self.dft_year = "2024"
-        self.dft_term = "1247"
+        self.dft_term = "1241"
         self.search_code = ""
 
         # Command dict
@@ -156,6 +162,10 @@ class AxeBot:
                         self.prefix + "lookup": (
                                                 self.lookup,
                                                 f"Look up a specific class\nFormat: {self.prefix}lookup <XXX000> <season> <year>"
+                                                ),
+                        self.prefix + "grades":(
+                                                self.grades,
+                                                "See grade distribution for a class"
                                                 ),
                         self.prefix + "subjects":(
                                                 self.subjects,

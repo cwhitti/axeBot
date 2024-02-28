@@ -192,3 +192,10 @@ def invite_embed( axeBot, url ):
     embed.set_footer(text="Thank you for enjoying axeBot :)")
 
     return embed
+
+def embed_grades( search, grades ):
+
+    embed = discord.Embed(title="Invite me!",
+                        description=f"Click [here]({url}) to invite axeBot to your server!",
+                        color=axeBot.color)
+    
