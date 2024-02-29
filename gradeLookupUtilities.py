@@ -51,7 +51,8 @@ def get_grades( search ):
     term = search.sms_code
     classSub = search.sub
     classNbr = search.cat_nbr
-    classCode = classSub + " " + classNbr
+    endLetter = search.ending
+    classCode = classSub + " " + classNbr + endLetter
 
     url = "https://www7.nau.edu/pair/reports/ClassDistribution"
 
@@ -63,7 +64,6 @@ def get_grades( search ):
 
     # Check if the request was successful
     if not resp_200( response ):
-        print("Bad!")
         return []
 
     # Parse the HTML content
@@ -85,7 +85,6 @@ def get_grades( search ):
     response = session.post(url, data=payload)
 
     if not resp_200( response ):
-        print("Bad!")
         return []
 
     soup = get_soup(response)
@@ -103,13 +102,12 @@ def get_grades( search ):
         term = get_sms_code(search)
         search.sms_code = term
 
-        print(f"Trying with term {term}")
+        course_info = get_grades( search )
 
-        get_grades( search )
+        return course_info
 
     if (event_validation != None):
 
-        print(event_validation)
         # Prepare the payload with updated form data and the extracted values
         payload = {
             "__VIEWSTATE": view_state,
@@ -122,30 +120,74 @@ def get_grades( search ):
         response = session.post(url, data=payload)
 
         if not resp_200( response ):
-
-            print("Bad!")
             return []
 
         soup = get_soup(response)
 
-        entries = soup.find_all('td', class_='small', text=classCode)
+        entries = []
+        info = soup.find_all('td', string=classCode)
+
+        for td_tag in info:
+
+            tr_tag = td_tag.parent  # Get the parent <tr> tag
+            entry = [td.text for td in tr_tag.find_all('td')]
+            entries.append(entry)
+
 
         if len(entries) != 0:
 
-            grades = []
+            course_info = []
 
             for entry in entries:
 
-                next_siblings = entry.find_next_siblings('td', class_='small', align='right')
-                numbers = [sibling.get_text() for sibling in next_siblings]
-                grades.append(numbers)
+                class_name = entry[0]
+                section = entry[1]
+                #class_nbr = entry[2]
+                prof = entry[3]
+                a = entry[4]
+                b = entry[5]
+                c = entry[6]
+                d = entry[7]
+                f = entry[8]
+                au = entry[9]
+                p = entry[10]
+                ng = entry[11]
+                w = entry[12]
+                i = entry[13]
+                ip = entry[14]
+                pen = entry[15]
+                total = entry[16]
 
-            print(grades)
-            return grades
+                course = Course(class_name, term=term)
 
-        else:
-            print("Bad!")
-            return []
+                course.update_grades( section, prof, a, b, c, d, f, au, p, ng, w,
+                                                                    i, ip, pen, total)
+
+                course_info.append(course)
+
+                '''
+                # Printing the extracted values
+                print("Class:", course.name)
+                print("Section:", course.section)
+                print("Instructor Name:", course.prof)
+                print("A:", course.A)
+                print("B:", course.B)
+                print("C:", course.C)
+                print("D:", course.D)
+                print("F:", course.F)
+                print("AU:", course.AU)
+                print("P:", course.P)
+                print("NG:", course.NG)
+                print("W:", course.W)
+                print("I:", course.I)
+                print("IP:", course.IP)
+                print("Pending:", course.pen)
+                print("Total:", course.total)
+                '''
+
+            return course_info
+    else:
+        return []
 
 def decrease_term( search ):
 
@@ -155,15 +197,18 @@ def decrease_term( search ):
     # fall 2024
 
     # default to fall
-    if szn == "spring" or szn == "winter":
+    if szn == "spring":
 
-        if szn == "spring":
-            new_yr = str( int( new_yr ) - 1)
+        new_yr = str( int( new_yr ) - 1)
+        new_szn = "winter"
 
-        new_szn = "fall"
+    elif szn == "fall":
+        new_szn = "summer"
 
-    # default to spring
-    else:
+    elif szn == "summer":
         new_szn = "spring"
+
+    else:
+        new_szn = "fall"
 
     return new_szn, new_yr

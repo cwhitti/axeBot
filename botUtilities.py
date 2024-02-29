@@ -113,8 +113,6 @@ def get_sms_code(axeBot):
     dict = axeBot.szn_dict
     szn = axeBot.search_szn.lower()
 
-    print(szn)
-    
     year = axeBot.search_year
     dig_1 = "1"
 

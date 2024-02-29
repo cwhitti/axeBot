@@ -7,7 +7,7 @@ from gradeLookupUtilities import *
 from classes import name_list
 from searchClass import Search
 
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 
 class AxeBot:
 
@@ -102,10 +102,36 @@ class AxeBot:
         search = Search( self.dft_szn, self.dft_year,
                          self.dft_term, self.color )
 
+        embeds = []
+
         if self.parse_search( msg, args, argc, search):
 
-            grades = get_grades( search )
-            return []
+            courses = get_grades( search )
+
+            for course in courses:
+
+                if DEBUG_FLAG:
+                    print()
+                    print("Class:", course.name)
+                    print("Section:", course.section)
+                    print("Instructor Name:", course.prof)
+                    print("A:", course.A)
+                    print("B:", course.B)
+                    print("C:", course.C)
+                    print("D:", course.D)
+                    print("F:", course.F)
+                    print("AU:", course.AU)
+                    print("P:", course.P)
+                    print("NG:", course.NG)
+                    print("W:", course.W)
+                    print("I:", course.I)
+                    print("IP:", course.IP)
+                    print("Pending:", course.pen)
+                    print("Total:", course.total)
+
+                embeds.append(create_grade_embed( search, course ))
+
+            return embeds
 
         return bad_lookup_embed( self, msg.content )
 
