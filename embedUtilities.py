@@ -48,15 +48,20 @@ def create_help_embed(axeBot):
             "\n\n",
 
             "Usage examples:\n",
+            "\n**Lookup**\n",
             f"- {pfx}lookup CS249\n",
             f"- {pfx}lookup BIO 181L Spring 2011    \n",
-            f"- {pfx}lookup ANT winter 2022        \n",
             f"- {pfx}lookup cs212 summer 2017      \n",
             f"- {pfx}lookup eng      \n",
+            "\n**Grades**\n",
+            f"- {pfx}grades CS126L      \n",
+            f"- {pfx}grades mat136 summer 2022        \n",
+            "\n**Subjects**\n",
             f"- {pfx}subjects                    \n",
+            "\n**Invite**\n",
             f"- {pfx}invite                    \n\n",
             f"(!) This bot is not affiliated, sponsored, nor endorsed by NAU (!) \n\n",
-            "==============   All Commands  =============="
+            "**+===+ All Commands +===+**"
         )
 
     embed = discord.Embed(title="Hello from axeBot!",

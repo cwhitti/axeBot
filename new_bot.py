@@ -21,8 +21,7 @@ def run_discord_bot():
     @client.event
     async def on_ready():
 
-        sts = f"Try {prefix}help!"
-        await client.change_presence(activity=discord.Game(name=sts))
+        await client.change_presence(activity=discord.Game(name="axe.help"))
         print(f'{client.user} is now running!')
 
     # handle message
