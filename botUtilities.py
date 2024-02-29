@@ -5,7 +5,6 @@ from courseClass import Course
 from bs4 import BeautifulSoup
 
 def create_search_url( axeBot ):
-
     base_url = "https://catalog.nau.edu/Courses/results?"
     subject = "subject=" + axeBot.sub
     cat_nbr = "&catNbr=" + axeBot.cat_nbr + axeBot.ending
@@ -113,6 +112,7 @@ def get_sms_code(axeBot):
     # initialize variables
     dict = axeBot.szn_dict
     szn = axeBot.search_szn.lower()
+
     year = axeBot.search_year
     dig_1 = "1"
 

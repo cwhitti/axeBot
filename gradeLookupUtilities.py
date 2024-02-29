@@ -2,6 +2,8 @@ import requests
 import urllib3
 import ssl
 from bs4 import BeautifulSoup
+from courseClass import Course
+from botUtilities import *
 
 class CustomHttpAdapter(requests.adapters.HTTPAdapter):
     # "Transport adapter" that allows us to use custom ssl_context.
@@ -44,11 +46,13 @@ def resp_200( resp ):
 def get_soup( resp):
     return BeautifulSoup(resp.content, 'html.parser')
 
-def get_grades():
+def get_grades( search ):
 
-    term = "1237"
-    classSub = "CS"
-    classCode = "CS 396"
+    term = search.sms_code
+    classSub = search.sub
+    classNbr = search.cat_nbr
+    endLetter = search.ending
+    classCode = classSub + " " + classNbr + endLetter
 
     url = "https://www7.nau.edu/pair/reports/ClassDistribution"
 
@@ -56,7 +60,7 @@ def get_grades():
     session = get_legacy_session()
 
     # Send a POST request with form data
-    response = session.post(url)
+    response = session.post( url )
 
     # Check if the request was successful
     if not resp_200( response ):
@@ -85,41 +89,126 @@ def get_grades():
 
     soup = get_soup(response)
 
-    # Extract the __VIEWSTATE and __EVENTVALIDATION values from the page
-    view_state = soup.find('input', {'name': '__VIEWSTATE'}).get('value')
-    event_validation = soup.find('input', {'name': '__EVENTVALIDATION'}).get('value')
 
-    # Prepare the payload with updated form data and the extracted values
-    payload = {
-        "__VIEWSTATE": view_state,
-        "__EVENTVALIDATION": event_validation,
-        "ctl00$MainContent$TermList": term,  # Fall 2023
-        "ctl00$MainContent$SubjectList": classSub,  # Example subject, change as needed
-        "ctl00$MainContent$Button1": "Submit"
-    }
+    try:
+        # Extract the __VIEWSTATE and __EVENTVALIDATION values from the page
+        view_state = soup.find('input', {'name': '__VIEWSTATE'}).get('value')
+        event_validation = soup.find('input', {'name': '__EVENTVALIDATION'}).get('value')
 
-    response = session.post(url, data=payload)
+    except AttributeError:
 
-    if not resp_200( response ):
-        return []
+        search.search_szn, search.search_year = decrease_term( search )
 
-    soup = get_soup(response)
+        term = get_sms_code(search)
+        search.sms_code = term
 
-    entries = soup.find_all('td', class_='small', text=classCode)
+        course_info = get_grades( search )
 
-    if len(entries) != 0:
+        return course_info
 
-        grades = []
+    if (event_validation != None):
 
-        for entry in entries:
+        # Prepare the payload with updated form data and the extracted values
+        payload = {
+            "__VIEWSTATE": view_state,
+            "__EVENTVALIDATION": event_validation,
+            "ctl00$MainContent$TermList": term,  # Fall 2023
+            "ctl00$MainContent$SubjectList": classSub,  # Example subject, change as needed
+            "ctl00$MainContent$Button1": "Submit"
+        }
 
-            next_siblings = entry.find_next_siblings('td', class_='small', align='right')
-            numbers = [sibling.get_text() for sibling in next_siblings]
-            grades.append(numbers)
+        response = session.post(url, data=payload)
 
-        return grades
+        if not resp_200( response ):
+            return []
 
+        soup = get_soup(response)
+
+        entries = []
+        info = soup.find_all('td', string=classCode)
+
+        for td_tag in info:
+
+            tr_tag = td_tag.parent  # Get the parent <tr> tag
+            entry = [td.text for td in tr_tag.find_all('td')]
+            entries.append(entry)
+
+
+        if len(entries) != 0:
+
+            course_info = []
+
+            for entry in entries:
+
+                class_name = entry[0]
+                section = entry[1]
+                #class_nbr = entry[2]
+                prof = entry[3]
+                a = entry[4]
+                b = entry[5]
+                c = entry[6]
+                d = entry[7]
+                f = entry[8]
+                au = entry[9]
+                p = entry[10]
+                ng = entry[11]
+                w = entry[12]
+                i = entry[13]
+                ip = entry[14]
+                pen = entry[15]
+                total = entry[16]
+
+                course = Course(class_name, term=term)
+
+                course.update_grades( section, prof, a, b, c, d, f, au, p, ng, w,
+                                                                    i, ip, pen, total)
+
+                course_info.append(course)
+
+                '''
+                # Printing the extracted values
+                print("Class:", course.name)
+                print("Section:", course.section)
+                print("Instructor Name:", course.prof)
+                print("A:", course.A)
+                print("B:", course.B)
+                print("C:", course.C)
+                print("D:", course.D)
+                print("F:", course.F)
+                print("AU:", course.AU)
+                print("P:", course.P)
+                print("NG:", course.NG)
+                print("W:", course.W)
+                print("I:", course.I)
+                print("IP:", course.IP)
+                print("Pending:", course.pen)
+                print("Total:", course.total)
+                '''
+
+            return course_info
     else:
         return []
 
-main()
+def decrease_term( search ):
+
+    szn = search.search_szn
+    new_yr = search.search_year
+
+    # fall 2024
+
+    # default to fall
+    if szn == "spring":
+
+        new_yr = str( int( new_yr ) - 1)
+        new_szn = "winter"
+
+    elif szn == "fall":
+        new_szn = "summer"
+
+    elif szn == "summer":
+        new_szn = "spring"
+
+    else:
+        new_szn = "fall"
+
+    return new_szn, new_yr

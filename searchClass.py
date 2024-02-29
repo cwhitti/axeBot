@@ -1,3 +1,6 @@
+from botUtilities import *
+from classUtilities import *
+
 class Search:
 
     def __init__(self, dft_szn, dft_year, dft_term, color):
@@ -43,3 +46,30 @@ class Search:
         self.sub = "" # ex: "CS"
         self.cat_nbr = "" # #ex: "249"
         self.ending = ""
+
+    def all_requests( self, TYPE):
+
+        self.search_url = create_search_url( self )
+        self.url_list = get_urls( self )
+
+        if TYPE == "Short":
+            self.course_list = get_class_dict_short( self )
+
+        else:
+            self.course_list = get_class_dict( self )
+    def debug(self, DEBUG_FLAG):
+
+        if DEBUG_FLAG:
+
+            print( "Search values:\n",
+                    "\tSearch code: " + self.search_code + "\n", # ex: CS249
+                    "\tsearch_szn: " + self.search_szn+ "\n", # ex: "spring"
+                    "\tsearch_year: " + self.search_year+ "\n", # ex: "2018"
+                    "\tsearch_url: " + self.search_url+ "\n", # ex: HTML SEARCH URL
+                    "\tsms_code: " + self.sms_code+ "\n", # ex: 1237
+                    "\tsub: " + self.sub+ "\n", # ex: "CS"
+                    "\tcat_nbr: " + self.cat_nbr+ "\n", # #ex: "249"
+                    "\tending: " + self.ending + "\n",
+                    "\turl_list: " + str(self.url_list) + "\n", # List of URLS on page
+                    "\tcourse_list: " + str(self.course_list) + "\n", # Dict of all classes
+                )

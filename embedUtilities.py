@@ -192,3 +192,138 @@ def invite_embed( axeBot, url ):
     embed.set_footer(text="Thank you for enjoying axeBot :)")
 
     return embed
+
+def create_grade_embed( search, course ):
+
+    CHAR = '.'
+    WIDTH = 98
+
+    name = course.name
+    szn = search.search_szn
+    year = search.search_year
+    section = course.section
+    prof = course.prof
+    A = int(course.A)
+    B = int(course.B)
+    C = int(course.C)
+    D = int(course.D)
+    F = int(course.F)
+    AU = int(course.AU)
+    P = int(course.P)
+    NG = int(course.NG)
+    W = int(course.W)
+    I = int(course.I)
+    IP = int(course.IP)
+    pen = int(course.pen)
+    total = int(course.total)
+
+    embed = discord.Embed(title=f"{name} Section {section} Grade Distribution",
+                        description="",
+                        color=search.color)
+    #embed.add_field(name=f"{DESIGN1 * X_CHR} Class Info {DESIGN1 * X_CHR}", value="", inline=False)
+    #embed_section_title(embed, WIDTH, CHAR, "Class Info")
+    embed.add_field(name="Section", value=course.section, inline=False)
+    embed.add_field(name="Professor", value=course.prof, inline=True)
+
+    # Check if pass/fail
+    if ( A + B + C + D == 0 ):
+
+        passed = (P / total) * 100
+        failed = (100 - passed)
+
+    # graded class
+    else:
+
+        passed_sum = A + B + C
+        passed = (passed_sum / total) * 100
+        failed = (100 - passed)
+
+    #embed_section_title(embed, WIDTH, CHAR, "Pass/Fail Rate")
+
+    embed.add_field(name="Passed",
+                    value=str( round( passed, 2 ) ) + "%",
+                    inline=False)
+    embed.add_field(name="Failed",
+                    value=str( round( failed, 2 ) ) + "%",
+                    inline=True)
+    embed.add_field(name="",
+                    value="_\* Passing grades are counted as A, B, C_",
+                    inline=True)
+    #embed_section_title(embed, WIDTH, CHAR, "Class Grades")
+
+    text = ""
+
+    embed.add_field(name=f"Total Students Enrolled: {course.total}",
+                    value="",
+                    inline=False)
+
+    if ( A + B + C + D != 0 ):
+
+
+        add_grade(embed, text + "A", course.A)
+        add_grade(embed, text + "B", course.B)
+        add_grade(embed, text + "C", course.C)
+        add_grade(embed, text + "D", course.D)
+        add_grade(embed, text + "F", course.F)
+        add_grade(embed, text + "W", course.W)
+
+    else:
+
+        add_grade(embed, text + "P", course.P)
+        add_grade(embed, text + "F", course.F)
+        add_grade(embed, text + "W", course.W)
+
+    #embed_last_line( embed, WIDTH, CHAR )
+
+
+    embed.add_field(name = "", value ='''
+        (!) To protect student privacy, grade distributions are not
+        available for undergraduate classes with fewer than ten
+        students enrolled or for graduate classes with fewer
+        than five students enrolled.
+
+        (!) Only class after 2005 have public records available''' , inline=False)
+
+    #embed_last_line( embed, WIDTH, '=' )
+
+    embed.set_footer(text=f"Based on {szn.capitalize()} {year} records.")
+    embed.set_thumbnail(url="https://i.pinimg.com/564x/4a/25/80/4a25805f04f4ba694d9fff4a41426799.jpg")
+
+    return embed
+
+def embed_new_line( embed ):
+
+    embed.add_field(name="\u200B", value="\u200B", inline=False) # Empty line
+
+def add_grade(embed, text, grade):
+
+    str = f"{text}: {grade}"
+
+    embed.add_field(name=str, value="")
+
+def embed_section_title(embed, width, CHAR, text):
+
+    """
+    Center the given text inside a design.
+
+    Args:
+    - text (str): The text to be centered.
+    - width (int): The width of the design.
+
+    Returns:
+    - str: The centered text inside the design.
+    """
+
+    if len(text) >= width:
+        return text
+
+    padding = (width - len(text)) // 2
+    left_padding = padding
+    right_padding = width - len(text) - left_padding
+    centered_text = CHAR * left_padding + f" {text} " + CHAR * right_padding
+
+    embed.add_field(name=centered_text, value="", inline=False)
+
+def embed_last_line( embed, width, CHAR ):
+
+    embed.add_field(name=CHAR * (int(width/2) + 8), value="", inline=False)

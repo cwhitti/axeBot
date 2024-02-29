@@ -1,7 +1,8 @@
 class Course:
 
-    def __init__(self, name, desc, units, desig, semesters,
-                        course_id, term, url, prereqs, offered):
+    def __init__(self, name, desc = None, units = None, desig = None,
+                semesters = None, course_id = None, term = None, url = None,
+                prereqs = None, offered = None):
         self.name = name
         self.desc = desc
         self.units = units
@@ -12,6 +13,7 @@ class Course:
         self.url = url
         self.prereqs = prereqs
         self.offered = offered
+
         self.total = None
         self.A = None
         self.B = None
@@ -26,8 +28,11 @@ class Course:
         self.IP = None
         self.Pen = None
 
-    def update_grades( self, A, B, C, D, F, AU, P, NG, W, I, IP, Pen, total ):
+    def update_grades( self, section, prof, A, B, C, D, F, AU, P, NG, W,
+                                                        I, IP, pen, total ):
 
+        self.section = section
+        self.prof = prof
         self.A = A
         self.B = B
         self.C = C
@@ -39,5 +44,5 @@ class Course:
         self.W = W
         self.I = I
         self.IP = IP
-        self.Pen = Pen
+        self.pen = pen
         self.total = total
