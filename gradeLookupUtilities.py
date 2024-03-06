@@ -120,6 +120,8 @@ def get_grades( search ):
         response = session.post(url, data=payload)
 
         if not resp_200( response ):
+
+            print("Bad :(")
             return []
 
         soup = get_soup(response)
@@ -133,10 +135,9 @@ def get_grades( search ):
             entry = [td.text for td in tr_tag.find_all('td')]
             entries.append(entry)
 
+        course_info = []
 
         if len(entries) != 0:
-
-            course_info = []
 
             for entry in entries:
 
@@ -185,7 +186,8 @@ def get_grades( search ):
                 print("Total:", course.total)
                 '''
 
-            return course_info
+        return course_info
+        
     else:
         return []
 

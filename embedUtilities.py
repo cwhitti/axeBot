@@ -1,6 +1,21 @@
 import discord
 from classes import name_list
 
+def bad_grade_lookup( axeBot, search ):
+
+    embed = discord.Embed(title=f" Sorry, we couldn't find that course.",
+        description=f"", color=axeBot.color)
+
+    embed.add_field(name="",
+                    value=f'''
+                            **Common Failure Reasons**
+
+                            👉   **No Records**: Public records not yet available, or class does not exist.
+
+                            👉   **Incorrect Format**: The format for this command is *{axeBot.prefix}grades <SEASON> <YEAR>*.
+
+                            ''')
+    return [embed]
 
 def bad_lookup_embed( axeBot, msg ):
 
@@ -8,6 +23,54 @@ def bad_lookup_embed( axeBot, msg ):
         description=f"'{msg}' is not a valid search.", color=axeBot.color)
 
     embed.set_footer( text=f"(!) Commands can be found with {axeBot.prefix}help")
+
+    return [embed]
+
+def class_not_offered( search ):
+
+    szn = search.search_szn.capitalize()
+    yr = search.search_year
+
+    code = search.search_code
+
+    new_szn = szn
+    new_year = yr
+
+    if szn == "Fall":
+        new_szn = "Summer"
+
+    elif szn == "Summer":
+        new_szn = "Spring"
+
+    elif szn == "Spring":
+        new_szn = "Winter"
+        new_year = int(yr) - 1
+
+    else:
+        new_szn = "Fall"
+
+    embed = discord.Embed(title=f"{code}: No Records Found ",
+        description="", color=search.color)
+
+    embed.add_field(name="", value= f'''
+
+        **Term**
+        {szn} {yr}
+
+        **What happened?**
+        This class may not exist in the system due to one of the following reasons:
+
+        👉   **Too Few Students**: To protect student privacy, grade distributions are not available for undergraduate classes with fewer than ten students enrolled or for graduate classes with fewer than five students enrolled.
+
+        👉   **No Records**: Public records not yet available.
+
+        👉   **Off-season**: Some classes are Spring/Fall only. Try searching for another semester.
+
+        **Suggested commands:**
+        axe.help
+        axe.grades {code} {new_szn} {new_year}
+        ''',
+        inline=False)
 
     return [embed]
 
@@ -127,6 +190,7 @@ def batch_embed_course(axeBot, course_list, first_embed):
             embed.add_field(name=course.name, value=f"CourseID: {course.id}",
                             inline=False)
 
+    embed.set_footer(text=f"Courses listed may not be currently available.")
     return embed
 
 def one_embed_course(search, course):
@@ -166,7 +230,7 @@ def one_embed_course(search, course):
         value=f"[Course Link]({course_url})",
         inline=False)
 
-    embed.set_footer(text=f"Based on {szn} {course_cat} catalogue")
+    embed.set_footer(text=f"Based on {szn.capitalize()} {course_cat} catalogue")
 
     return embed
 
@@ -204,7 +268,7 @@ def create_grade_embed( search, course ):
     WIDTH = 98
 
     name = course.name
-    szn = search.search_szn
+    szn = search.search_szn.capitalize()
     year = search.search_year
     section = course.section
     prof = course.prof
@@ -227,39 +291,51 @@ def create_grade_embed( search, course ):
                         color=search.color)
     #embed.add_field(name=f"{DESIGN1 * X_CHR} Class Info {DESIGN1 * X_CHR}", value="", inline=False)
     #embed_section_title(embed, WIDTH, CHAR, "Class Info")
-    embed.add_field(name="Section", value=course.section, inline=False)
     embed.add_field(name="Professor", value=course.prof, inline=True)
+    embed.add_field(name="Term", value=f"{szn} {year}", inline=False)
+    embed.add_field(name="Section", value=course.section, inline=False)
+
+    dropped = ( W / total ) * 100
 
     # Check if pass/fail
     if ( A + B + C + D == 0 ):
 
         passed = (P / total) * 100
-        failed = (100 - passed)
+        failed = (100 - passed - dropped)
 
     # graded class
     else:
 
         passed_sum = A + B + C
         passed = (passed_sum / total) * 100
-        failed = (100 - passed)
+        failed = (100 - passed - dropped)
 
-    #embed_section_title(embed, WIDTH, CHAR, "Pass/Fail Rate")
-
+    embed.add_field(name="࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔",
+                value="",
+                inline=False)
     embed.add_field(name="Passed",
-                    value=str( round( passed, 2 ) ) + "%",
-                    inline=False)
-    embed.add_field(name="Failed",
-                    value=str( round( failed, 2 ) ) + "%",
+                    value="✅ "  + str( round( passed, 2 ) ) + "%",
                     inline=True)
     embed.add_field(name="",
                     value="_\* Passing grades are counted as A, B, C_",
                     inline=True)
+    embed.add_field(name="Dropped",
+                    value="⚠️ "  + str( round( dropped, 2 ) ) + "%",
+                    inline=False)
+    embed.add_field(name="Failed ",
+                    value="🛑 "  + str( round( failed, 2 ) ) + "%",
+                    inline=False)
     #embed_section_title(embed, WIDTH, CHAR, "Class Grades")
 
     text = ""
 
-    embed.add_field(name=f"Total Students Enrolled: {course.total}",
-                    value="",
+    embed.add_field(name=f"",
+                    value=f'''
+                    **࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔**
+
+                    **{course.total} Total Enrolled**
+
+                    ''',
                     inline=False)
 
     if ( A + B + C + D != 0 ):
@@ -291,7 +367,7 @@ def create_grade_embed( search, course ):
 
     #embed_last_line( embed, WIDTH, '=' )
 
-    embed.set_footer(text=f"Based on {szn.capitalize()} {year} records.")
+    embed.set_footer(text=f"Based on {szn} {year} records.")
     embed.set_thumbnail(url="https://i.pinimg.com/564x/4a/25/80/4a25805f04f4ba694d9fff4a41426799.jpg")
 
     return embed
