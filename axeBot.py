@@ -108,6 +108,9 @@ class AxeBot:
 
             courses = get_grades( search )
 
+            if len(courses) == 0:
+                return class_not_offered( search )
+
             for course in courses:
 
                 if DEBUG_FLAG:
@@ -133,11 +136,7 @@ class AxeBot:
 
             return embeds
 
-        return bad_lookup_embed( self, msg.content )
-
-
-    def random(self, msg, args, argc):
-        return 0
+        return bad_grade_lookup( self, search )
 
     def help(self, msg, args, argc):
         return [create_help_embed( self )]
