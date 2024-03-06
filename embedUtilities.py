@@ -310,7 +310,7 @@ def create_grade_embed( search, course ):
         passed = (passed_sum / total) * 100
         failed = (100 - passed - dropped)
 
-    embed.add_field(name="࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔",
+    embed.add_field(name="",
                 value="",
                 inline=False)
     embed.add_field(name="Passed",
@@ -331,8 +331,6 @@ def create_grade_embed( search, course ):
 
     embed.add_field(name=f"",
                     value=f'''
-                    **࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔࿔**
-
                     **{course.total} Total Enrolled**
 
                     ''',
