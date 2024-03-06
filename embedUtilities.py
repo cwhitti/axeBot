@@ -281,13 +281,13 @@ def create_grade_embed( search, course ):
     #embed_last_line( embed, WIDTH, CHAR )
 
 
-    embed.add_field(name = "", value ='''
-        (!) To protect student privacy, grade distributions are not
-        available for undergraduate classes with fewer than ten
-        students enrolled or for graduate classes with fewer
-        than five students enrolled.
-
-        (!) Only class after 2005 have public records available''' , inline=False)
+    #embed.add_field(name = "", value ='''
+    #    (!) To protect student privacy, grade distributions are not
+    #    available for undergraduate classes with fewer than ten
+    #    students enrolled or for graduate classes with fewer
+    #    than five students enrolled.
+    #
+    #    (!) Only class after 2005 have public records available''' , inline=False)
 
     #embed_last_line( embed, WIDTH, '=' )
 
