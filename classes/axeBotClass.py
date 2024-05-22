@@ -12,6 +12,14 @@ DEBUG_FLAG = False
 
 class AxeBot:
 
+    async def send_file_and_get_url(self, channel, file_path):
+
+        # Send the file asynchronously and get the message object
+        message = await channel.send(file=discord.File(file_path))
+
+        # Return the URL of the uploaded file
+        return message.attachments[0].url
+
     def check_cooldown(self, msg, user_cooldowns):
 
         if ( msg.author.id in user_cooldowns ) and ( time.time() - user_cooldowns[msg.author.id ] < self.wait_limit ):
