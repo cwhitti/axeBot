@@ -1,8 +1,10 @@
 import discord
+import logging
 from classes.axeBotClass import AxeBot
 import scripts.embedUtilities as eu
+from secret import LOG_FILE
 
-def run_discord_bot():
+def run_discord_bot( logging ):
 
     # initialize variables
     axeBot = AxeBot()
@@ -21,7 +23,7 @@ def run_discord_bot():
     async def on_ready():
 
         await client.change_presence(activity=discord.Game(name="axe.help"))
-        print(f'{client.user} is now running!')
+        print(f'Starting {client.user}')
 
     # handle message
     @client.event
@@ -38,6 +40,12 @@ def run_discord_bot():
         # grab message contents
         if msg.content.startswith( prefix ):
 
+            logging.info(f'''COMMAND EVENT
+                             NAME   : {msg.author.name}
+                             GUILD  : {msg.guild.name}
+                             CHANNEL: #{msg.channel.name}
+                             CONTENT: {msg.content}''')
+
             if axeBot.check_cooldown( msg, user_cooldowns ):
 
                 embed = discord.Embed(title=f"Rate Limit!",
@@ -51,8 +59,14 @@ def run_discord_bot():
             # Get command - axe.lookup
             command = args[0].lower()
 
+            # Handle sending logs to owner
+            if command.startswith("axe.logs") and msg.author.id == axeBot.owner_id:
+
+                logging.info(f'Sending log files to {msg.author.name} in #{msg.channel.name}')
+                await msg.channel.send(file=discord.File(LOG_FILE))
+
             # check if command is valid
-            if command in axeBot.cmd_dict.keys():
+            elif command in axeBot.cmd_dict.keys():
 
                 # Grab the command
                 selected_option = axeBot.cmd_dict.get( command )

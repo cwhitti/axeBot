@@ -10,7 +10,7 @@ def bad_grade_lookup( axeBot, search ):
                     value=f'''
                             **Common Failure Reasons**
 
-                            👉   **No Records**: Public records not yet available, or class does not exist.
+                            👉   **No Records**: Class does not exist.
 
                             👉   **Incorrect Format**: The format for this command is *{axeBot.prefix}grades <SEASON> <YEAR>*.
 
@@ -62,7 +62,7 @@ def class_not_offered( search ):
 
         👉   **Too Few Students**: To protect student privacy, grade distributions are not available for undergraduate classes with fewer than ten students enrolled or for graduate classes with fewer than five students enrolled.
 
-        👉   **No Records**: Public records not yet available.
+        👉   **No Records**: Public records not yet available, or class does not exist.
 
         👉   **Off-season**: Some classes are Spring/Fall only. Try searching for another semester.
 
