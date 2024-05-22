@@ -1,8 +1,8 @@
-import re
-import classUtilities as cls
-import requests
-from courseClass import Course
+from classes.courseClass import Course
+import scripts.classUtilities as cls
 from bs4 import BeautifulSoup
+import re
+import requests
 
 def create_search_url( axeBot ):
     base_url = "https://catalog.nau.edu/Courses/results?"
