@@ -1,5 +1,5 @@
+from .subjectAbrvs import name_list
 import discord
-from classes import name_list
 
 def bad_grade_lookup( axeBot, search ):
 

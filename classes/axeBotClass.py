@@ -1,11 +1,12 @@
+from scripts.botUtilities import *
+from scripts.classUtilities import *
+from scripts.embedUtilities import *
+from scripts.gradeLookupUtilities import *
+from scripts.subjectAbrvs import name_list
+from classes.searchClass import Search
+from config import DEFAULT_TERM, DEFAULT_YEAR, DEFAULT_SZN
 import secret as sc
 import time
-from botUtilities import *
-from classUtilities import *
-from embedUtilities import *
-from gradeLookupUtilities import *
-from classes import name_list
-from searchClass import Search
 
 DEBUG_FLAG = False
 
@@ -173,9 +174,9 @@ class AxeBot:
         self.client_id = "1137314880697937940"
         self.permissions = "117824"
         self.scope = "bot"
-        self.dft_szn = "fall"
-        self.dft_year = "2024"
-        self.dft_term = "1241"
+        self.dft_szn = DEFAULT_SZN
+        self.dft_year = DEFAULT_YEAR
+        self.dft_term = DEFAULT_TERM
         self.search_code = ""
 
         # Command dict

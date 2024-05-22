@@ -1,5 +1,5 @@
-from botUtilities import *
-from classUtilities import *
+from scripts.botUtilities import *
+from scripts.classUtilities import *
 
 class Search:
 
@@ -22,7 +22,7 @@ class Search:
         self.url_list = [] # List of URLS on page
         self.course_list = [] # Dict of all classes
 
-                # end signifiers
+        # end signifiers
         self.end_sigs = ['H','h','L','l','W','w','R','r','c','C']
 
         # season dict

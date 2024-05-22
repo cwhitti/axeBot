@@ -1,9 +1,10 @@
+from classes.courseClass import Course
+from scripts.botUtilities import *
+from secret import URL as url
+from bs4 import BeautifulSoup
 import requests
 import urllib3
 import ssl
-from bs4 import BeautifulSoup
-from courseClass import Course
-from botUtilities import *
 
 class CustomHttpAdapter(requests.adapters.HTTPAdapter):
     # "Transport adapter" that allows us to use custom ssl_context.
@@ -53,8 +54,6 @@ def get_grades( search ):
     classNbr = search.cat_nbr
     endLetter = search.ending
     classCode = classSub + " " + classNbr + endLetter
-
-    url = "https://www7.nau.edu/pair/reports/ClassDistribution"
 
     # Send GET request to get initial page
     session = get_legacy_session()
@@ -113,7 +112,7 @@ def get_grades( search ):
             "__VIEWSTATE": view_state,
             "__EVENTVALIDATION": event_validation,
             "ctl00$MainContent$TermList": term,  # Fall 2023
-            "ctl00$MainContent$SubjectList": classSub,  # Example subject, change as needed
+            "ctl00$MainContent$SubjectList": classSub,
             "ctl00$MainContent$Button1": "Submit"
         }
 
@@ -166,28 +165,8 @@ def get_grades( search ):
 
                 course_info.append(course)
 
-                '''
-                # Printing the extracted values
-                print("Class:", course.name)
-                print("Section:", course.section)
-                print("Instructor Name:", course.prof)
-                print("A:", course.A)
-                print("B:", course.B)
-                print("C:", course.C)
-                print("D:", course.D)
-                print("F:", course.F)
-                print("AU:", course.AU)
-                print("P:", course.P)
-                print("NG:", course.NG)
-                print("W:", course.W)
-                print("I:", course.I)
-                print("IP:", course.IP)
-                print("Pending:", course.pen)
-                print("Total:", course.total)
-                '''
-
         return course_info
-        
+
     else:
         return []
 
@@ -195,8 +174,6 @@ def decrease_term( search ):
 
     szn = search.search_szn
     new_yr = search.search_year
-
-    # fall 2024
 
     # default to fall
     if szn == "spring":

@@ -1,7 +1,6 @@
 import discord
-from axeBot import AxeBot
-import embedUtilities as eu
-#from classes.course import Course
+from classes.axeBotClass import AxeBot
+import scripts.embedUtilities as eu
 
 def run_discord_bot():
 
