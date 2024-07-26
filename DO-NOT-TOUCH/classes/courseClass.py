@@ -1,8 +1,25 @@
+'''
+
+
+
+
+
+DO NOT EDIT
+
+
+
+
+
+
+'''
+
 class Course:
 
-    def __init__(self, name, desc = None, units = None, desig = None,
-                semesters = None, course_id = None, term = None, url = None,
-                prereqs = None, offered = None):
+    def __init__(self, name,
+                        desc      = None, units     = None, desig   = None,
+                        semesters = None, course_id = None, term    = None,
+                        url       = None, prereqs   = None, offered = None ):
+
         self.name = name
         self.desc = desc
         self.units = units
