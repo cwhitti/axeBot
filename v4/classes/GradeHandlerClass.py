@@ -34,8 +34,9 @@ class GradeHandler:
         if not self._grades( search, courses ):
             embed.description = "Sorry, we were unable to find the grades for this course."
             return False
-    
+
         self.embedHandler.embed_grades( embed, search, courses )
+        return True
         
     
     def __init__(self) -> None:

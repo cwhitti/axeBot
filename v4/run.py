@@ -1,12 +1,5 @@
 from secret import LOG_FILE
-import logging
 import bot
-import sys
-
-debug = False
-
-RED = "\033[31m"
-RESET = "\033[0m"
 
 try:
     # Run the bot

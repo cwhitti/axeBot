@@ -67,4 +67,6 @@ class Course:
                             "IP": None,
                             "Pen": None
                         }
+        
+        self.labels = None
     

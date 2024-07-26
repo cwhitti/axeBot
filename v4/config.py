@@ -22,6 +22,7 @@ DFT_YEAR = "2024"
 DFT_TERM = calculate_term( DFT_SZN, DFT_YEAR )
 
 LOG_FILE = "logs/logs.txt"
+PIE_CHART_FILE = "grades.png"
 
 WAIT_LIMIT = 5
 GITLINK = "https://github.com/cwhitti/axeBot"

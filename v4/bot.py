@@ -36,11 +36,16 @@ def run_discord_bot( ):
         # grab message contents
         if msg.content.startswith( prefix ):
 
-            embed = axeBot.handle_msg(msg, logging)
+            embed, file = axeBot.handle_msg(msg, logging)
 
             async with msg.channel.typing():
 
-                await msg.channel.send( embed=embed )
+                if file != None:
+                     await msg.channel.send( embed=embed, file=file )
+
+                else:
+
+                    await msg.channel.send( embed=embed )
 
                 return 0
 

@@ -1,5 +1,6 @@
 import re
 import config
+import discord
 import secret as sc
 from datetime import datetime
 from classes.SearchClass import Search
@@ -15,11 +16,24 @@ class AxeBot:
     '''
     PUBLIC FUNCTIONS
     '''
+    def handle_file( self, command ):
 
+        if command.startswith( self.prefix + "grades"):
+
+            filename = config.PIE_CHART_FILE
+
+            with open( filename, 'rb') as f:
+                file = discord.File(f, filename=filename)
+
+            return file
+        
+        return None
+    
     def handle_msg( self, msg, logging ):
 
         # initialize variables
         author_id = msg.author.id
+        file = None
 
         # Get command - axe.lookup
         argv = msg.content.split()
@@ -50,6 +64,8 @@ class AxeBot:
                 # create the embed list
                 selected_option[0]( msg, embed, logging )
 
+                file = self.handle_file( command )
+
             # Catch TypeError
             except TypeError as e:
 
@@ -71,7 +87,7 @@ class AxeBot:
             embed.description = "Command not recognized."
             embed.set_footer( text=f"(!) Commands can be found with {self.prefix}help")
 
-        return embed
+        return embed, file
 
     def help( self, msg, embed, logging ) -> None:
 
@@ -94,10 +110,6 @@ class AxeBot:
             **Grades**
             - {self.prefix}grades CS126L 
             - {self.prefix}grades mat136 summer 2022  
-            **Subjects**
-            - {self.prefix}subjects  
-            **Invite**
-            - {self.prefix}invite    
             
             (!) This bot is not affiliated, sponsored, nor endorsed by NAU (!)
             "**+===+ All Commands +===+**"'''
@@ -142,6 +154,7 @@ class AxeBot:
         if not self.gradeHandler.grades( embed, search ):
             embed.set_footer( text=f"Try {self.prefix}help for more information." )
 
+        return True
 
     def lookup( self, msg, embed, logging ):
 
