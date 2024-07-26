@@ -1,80 +1,133 @@
-import random 
+
+import numpy as np
+from PIL import Image
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches 
 from classes.CourseClass import Course
 
 
+def combine_images(image_files, output_file):
+    # Open all images and determine their sizes
+    images = [Image.open(image_file) for image_file in image_files]
+    
+    # Assume all images have the same size
+    width, height = images[0].size
+
+    # Create a new image with the combined size (stack images vertically)
+    combined_image = Image.new('RGB', (width, height * len(images)))
+
+    # Paste each image into the combined image
+    for index, image in enumerate(images):
+        combined_image.paste(image, (0, index * height))
+
+    # Save the combined image
+    combined_image.save(output_file)
+
 def create_figure(name, courses:list):
 
-    # Check for empty courses list
-    if not courses:
-        raise ValueError("Courses list is empty.")
+    profs = {}
+    imgs = []
 
-    # Initialize variables
-    n = len(courses)
+    # check if pass/fail
+    if (courses[0].grades["P"] != '0' ):
+        
+        labels = [ "P", "F"]
 
-    print(n)
+    # not pass/fail
+    else:
+        labels = ['A', 'B', 'C', 'D', 'F']
 
-    # Calculate number of rows and columns for subplots
-    cols = 5
-    rows = max(1, (n + cols - 1) // cols)  # Ensure at least one row
 
-    max_fig_width = 10
-    max_fig_height = 5.5 * rows
+    # category_names = ['Strongly disagree', 'Disagree',
+    #               'Neither agree nor disagree', 'Agree', 'Strongly agree']
+    
+    for course in courses:
 
-    # Create subplots
-    fig, axes = plt.subplots(rows, cols, figsize=(max_fig_width, max_fig_height))
+        prof = course.prof
 
-    # Flatten axes array for easy iteration
-    axes = axes.flatten()
+        if prof not in profs:
+            profs[ prof ] = []
 
-    # Plotting each dataset
-    for i, course in enumerate(courses):
+        profs[ prof ].append( course )
 
-        pf = course.grades.get("P")  # Use get() to avoid KeyError
+    # seperate graphs by prof
+    for prof, courses in profs.items():
 
-        if pf is not None:
+        class_dict = {}
 
-            labels = ["A", "B", "C", "D", "F"]
-            colors = ["#15C259", "#BEF774", "#FCFC7A", "#FF835B", "#FF3636"]
+        # seperate profs by course
+        for course in courses:  
 
-            grades = f'''
-            Grades
-            A: {course.grades.get("A", 0)}   B: {course.grades.get("B", 0)}
-            C: {course.grades.get("C", 0)}   D: {course.grades.get("D", 0)}
-            F: {course.grades.get("F", 0)}
-            '''
-            print("This class is not P/f")
-        else:
+            class_dict[ f"Sect. {course.section}" ] = [ int(course.grades[label]) for label in labels ]
 
-            labels = ["P", "F"]
-            colors = ["#15C259", "#FF3636"]
+        fig, ax = survey(class_dict, labels, prof )
+        filename = f"imgs/{prof}_{course.name}.png"
+        fig.savefig(filename)
+        imgs.append(filename)
 
-            grades = f'''
-            Grades
-            Pass: {course.grades.get("P", 0)}
-            Fail: {course.grades.get("F", 0)}
-            '''
-            print("This class IS P/F")
+    print(name)
+    combine_images( imgs, name )
 
-        # init size list
-        sizes = [course.grades.get(label, 0) for label in labels]
 
-        print(sizes)
+    # results = {
+    #     'Question 1': [10, 15, 17, 32, 26],
+    #     'Question 2': [26, 22, 29, 10, 13],
+    #     'Question 3': [35, 37, 7, 2, 19],
+    #     'Question 4': [32, 11, 9, 15, 33],
+    #     'Question 5': [21, 29, 5, 5, 40],
+    #     'Question 6': [8, 19, 5, 30, 38]
+    # }
 
-        # create pie chart
-        inst = f"{course.prof}"
-        axes[i].pie(sizes, colors=colors, autopct='%1.1f%%', startangle=140)
-        axes[i].axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-        axes[i].set_title(f'Section {course.section}', pad=20)
-        axes[i].text(-1, 1.5, inst, ha='left', fontsize=10)
-        axes[i].text(-1, -2.5, grades, ha='left', fontsize=10)
+    # fig, ax = survey(class_dict, labels)
 
-    # Remove any empty subplots if the number of datasets is not even
-    for j in range(i + 1, len(axes)):
-        fig.delaxes(axes[j])
+    # fig.savefig( name, format=name[-3:])
 
-    # Save the figure as a JPG file
-    plt.savefig(name, format='jpg')
+    return True
 
-    print("Success?")
+
+def create_stacked_figures(figs, filename='combined.png'):
+    pass
+
+
+def survey(results, category_names, title):
+    """
+    Parameters
+    ----------
+    results : dict
+        A mapping from question labels to a list of answers per category.
+        It is assumed all lists contain the same number of entries and that
+        it matches the length of *category_names*.
+    category_names : list of str
+        The category labels.
+    """
+    labels = list(results.keys())
+    data = np.array(list(results.values()))
+    data_cum = data.cumsum(axis=1)
+
+    category_colors = plt.colormaps['RdYlGn'](
+        np.linspace(0.15, 0.85, data.shape[1]))[::-1]
+
+
+    fig, ax = plt.subplots(figsize=(9.5, 5))
+    ax.invert_yaxis()
+    ax.xaxis.set_visible(False)
+    ax.set_xlim(0, np.sum(data, axis=1).max())
+
+    min_height = 20  # Minimum height for the bars
+    bar_height = min_height / 100.0  # Adjust this to fit your plot's scale
+
+    for i, (colname, color) in enumerate(zip(category_names, category_colors)):
+        widths = data[:, i]
+        starts = data_cum[:, i] - widths
+        rects = ax.barh(labels, widths, left=starts, height=bar_height,
+                        label=colname, color=color)
+
+        r, g, b, _ = color
+        text_color = 'white' if r * g * b < 0.5 else 'darkgrey'
+        ax.bar_label(rects, label_type='center', color=text_color)
+
+    ax.legend(ncols=len(category_names), bbox_to_anchor=(0, 1),
+            loc='lower left', fontsize='small')
+    
+    ax.set_title(title, loc='left', pad=28.5)
+
+    return fig, ax

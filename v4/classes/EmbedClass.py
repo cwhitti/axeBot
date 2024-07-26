@@ -14,7 +14,6 @@ class myEmbed:
         
         filename = cfg.PIE_CHART_FILE
         pc.create_figure( filename, courses)
-
         embed.set_footer(text=f"Based on {search.szn} {search.year} records.")
         embed.set_thumbnail(url="https://i.pinimg.com/564x/4a/25/80/4a25805f04f4ba694d9fff4a41426799.jpg")
 

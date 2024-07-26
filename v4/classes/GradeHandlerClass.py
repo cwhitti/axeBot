@@ -145,7 +145,10 @@ class GradeHandler:
 
                 courses.append( course )
 
-        return True
+            return True
+        
+        # No courses found
+        return False
 
     def _resp_200( self, resp ):
         return resp.status_code == 200

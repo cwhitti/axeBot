@@ -16,7 +16,7 @@ class AxeBot:
     '''
     PUBLIC FUNCTIONS
     '''
-    def handle_file( self, command ):
+    def handle_file( self, command, embed ):
 
         if command.startswith( self.prefix + "grades"):
 
@@ -24,6 +24,8 @@ class AxeBot:
 
             with open( filename, 'rb') as f:
                 file = discord.File(f, filename=filename)
+            
+            embed.set_image(url=f'attachment://{filename}')
 
             return file
         
@@ -40,7 +42,7 @@ class AxeBot:
         command = argv[0].lower()
 
         # initialize embed
-        embed = self.embedHandler.initialize_embed( "Title", "Desc", self.dft_color )
+        embed = self.embedHandler.initialize_embed( "", "", self.dft_color )
         embed.timestamp = datetime.now()
         # embed.set_footer( text='\u200b',icon_url=self.client.user.avatar.url )
 
@@ -62,9 +64,9 @@ class AxeBot:
             # Permissions are fine, try executing
             try:
                 # create the embed list
-                selected_option[0]( msg, embed, logging )
+                if selected_option[0]( msg, embed, logging ):
 
-                file = self.handle_file( command )
+                    file = self.handle_file( command, embed )
 
             # Catch TypeError
             except TypeError as e:
@@ -89,7 +91,7 @@ class AxeBot:
 
         return embed, file
 
-    def help( self, msg, embed, logging ) -> None:
+    def help( self, msg, embed, logging ):
 
         embed.title = f"{self.bot_name} Help"
         embed.description = \
@@ -103,13 +105,15 @@ class AxeBot:
             the creators of this bot wanted a novel way to search them up.
 
             Usage examples:
+
             **Lookup**
-            - {self.prefix}lookup CS249
-            - {self.prefix}lookup BIO 181L Spring 2011 
-            - {self.prefix}lookup cs212 summer 2017  
+            {self.prefix}lookup CS249
+            {self.prefix}lookup BIO 181L Spring 2011 
+            {self.prefix}lookup cs212 summer 2017  
+
             **Grades**
-            - {self.prefix}grades CS126L 
-            - {self.prefix}grades mat136 summer 2022  
+            {self.prefix}grades CS126L 
+            {self.prefix}grades mat136 summer 2022  
             
             (!) This bot is not affiliated, sponsored, nor endorsed by NAU (!)
             "**+===+ All Commands +===+**"'''
@@ -121,24 +125,29 @@ class AxeBot:
             if not is_admin:
                 embed.add_field(name=key, value=desc, inline=True )
 
+        return True
+
     def get_github( self, msg, embed, logging ):
-        pass 
+
+        return False
 
     def get_invite( self, msg, embed, logging ):
-        pass
 
-    def get_logs( self, msg, embed, logging ) -> None:
+        return False
+
+    def get_logs( self, msg, embed, logging ):
 
         # define variables
         embed.title = "Bot Logs"
         embed.description = "Sent logs via DM."
-
+        return True
+    
     def grades( self, msg, embed, logging ):
 
         search = Search( msg )
 
         embed.title = "Uh Oh..."
-        embed.description = "Default"
+        embed.description = ""
         
         # parse message
         if not ( self._parse_msg( msg, search ) ):
@@ -153,7 +162,10 @@ class AxeBot:
 
         if not self.gradeHandler.grades( embed, search ):
             embed.set_footer( text=f"Try {self.prefix}help for more information." )
+            return False
 
+        embed.title = f"Grade Distribution: {(search.sub).upper()}{search.nbr}"
+        embed.description = ""
         return True
 
     def lookup( self, msg, embed, logging ):
@@ -161,7 +173,7 @@ class AxeBot:
         search = Search( msg )
 
         embed.title = "Uh Oh..."
-        embed.description = "Default"
+        embed.description = ""
         
         # parse message
         if not ( self._parse_msg( msg, search ) ):
@@ -179,9 +191,10 @@ class AxeBot:
         if not self._lookup( search, course, embed ):
 
             embed.set_footer( text=f"Try {self.prefix}help for more information.")
+            return False
 
-    def subjects( self, msg, embed, logging ):
-        pass
+        return True
+
     
     '''
     PRIVATE FUNCTIONS
@@ -448,11 +461,11 @@ class AxeBot:
                                                 "See grade distribution for a class",
                                                 False
                                                 ),
-                        self.prefix + "subjects":(
-                                                self.subjects,
-                                                "See all course subjects",
-                                                False
-                                                ),
+                        # self.prefix + "subjects":(
+                        #                         self.subjects,
+                        #                         "See all course subjects",
+                        #                         False
+                        #                         ),
                         self.prefix + "invite":(
                                                 self.get_invite,
                                                 "Invite axeBot to your own server",
@@ -473,199 +486,3 @@ class AxeBot:
 
 
 
-'''
-
-class AxeBot:
-
-    async def send_file_and_get_url(self, channel, file_path):
-
-        # Send the file asynchronously and get the message object
-        message = await channel.send(file=discord.File(file_path))
-
-        # Return the URL of the uploaded file
-        return message.attachments[0].url
-
-    def check_cooldown(self, msg, user_cooldowns):
-
-        if ( msg.author.id in user_cooldowns ) and ( time.time() - user_cooldowns[msg.author.id ] < self.wait_limit ):
-            return True
-
-        user_cooldowns[msg.author.id] = time.time()
-        return False
-
-    def parse_search(self, msg, args, argc, search):
-
-        search.search_szn = search.dft_szn
-        search.search_year = search.dft_year
-
-        # check if argc > 1
-        if argc > 1:
-
-            TYPE = "LONG"
-
-            # pick args[1]
-            arg1 = args[1]
-
-            if not correct_start( arg1.upper(), name_list):
-                return False
-
-            # axe.lookup cs249, axe.lookup BIO
-            if argc == 2:
-
-                search.search_code = args[1].upper() #BIO, CS249
-                search.search_year = search.dft_year
-                search.sms_code = search.dft_term #1237
-
-                if search.search_code in name_list: # ---> axe.lookup BIO
-
-                    TYPE = "SHORT"
-
-                    # add subject and default term[[
-                    search.sub = search.search_code # BIO
-
-                    ## DEFINITELY WANT SHORT DICT!!! ###
-                    #search.search_url = create_search_url( search )
-                    #search.course_list = get_class_dict_short( search )
-
-                else: # CS249 --->
-                    search.sub, search.cat_nbr = get_sub_nbr( search )
-
-            # axe.lookup cs249 Fall, axe.lookup BIO181 Fall 2022
-            else:
-
-                year_pos = -1
-
-                if argc == 3:
-                    search.search_code = args[1] + args[2]
-
-                if argc == 4:
-                    search.search_code = args[1]
-                    year_pos = 3
-
-                if argc > 4:
-                    search.search_code = args[1] + args[2] # combine - CS+249
-                    year_pos = 4
-
-                if (argc == year_pos + 1):
-
-                    search.search_szn = args[ year_pos - 1 ]
-                    search.search_year = args[ year_pos ]
-
-                search.sms_code = get_sms_code( search )
-                search.sub, search.cat_nbr = get_sub_nbr( search )
-
-            search.all_requests( TYPE )
-
-        if len( search.course_list ) > 0 :
-            return True
-
-        return False
-
-    def lookup(self, msg, args, argc):
-
-        search = Search( self.dft_szn, self.dft_year,
-                         self.dft_term, self.color )
-
-        if self.parse_search( msg, args, argc, search):
-            return embed_courses( search )
-
-        return bad_lookup_embed( self, msg.content )
-
-    def grades(self, msg, args, argc):
-
-        search = Search( self.dft_szn, self.dft_year,
-                         self.dft_term, self.color )
-
-        embeds = []
-
-        if self.parse_search( msg, args, argc, search):
-
-            courses = get_grades( search )
-
-            if len(courses) == 0:
-                return class_not_offered( search )
-
-            for course in courses:
-
-                if DEBUG_FLAG:
-
-
-                embeds.append(create_grade_embed( search, course ))
-
-            return embeds
-
-        return bad_grade_lookup( self, search )
-
-    def help(self, msg, args, argc):
-        return [create_help_embed( self )]
-
-    def github(self, msg, args, argc):
-
-        return github_embed( self )
-
-    def subjects(self, msg, args, argc):
-
-        return [ create_subjects_embed( self, name_list ) ]
-
-    def get_invite(self, msg, args, argc):
-
-        # build url
-        addr = "https://discord.com/api/oauth2/authorize?"
-        client_id = f"client_id={self.client_id}"
-        perms = f"&permissions={self.permissions}"
-        scope = f"&scope={self.scope}"
-
-        url = addr + client_id + perms + scope
-
-        # return url
-        return [invite_embed( self, url )]
-
-    def __init__(self):
-        # variables
-        self.token = sc.TOKEN
-        self.prefix = sc.PREFIX
-        self.color = 0x4287f5
-        self.owner_id = 343857226982883339
-        self.wait_limit = 5
-        self.gitLink = "https://github.com/cwhitti/axeBot"
-        self.client_id = "1137314880697937940"
-        self.permissions = "117824"
-        self.scope = "bot"
-        self.dft_szn = DEFAULT_SZN
-        self.dft_year = DEFAULT_YEAR
-        self.dft_term = DEFAULT_TERM
-        self.search_code = ""
-
-        # Command dict
-        self.cmd_dict = {
-                        self.prefix + "help": (
-                                                self.help,
-                                                "List of commands"
-                                                ),
-                        self.prefix + "lookup": (
-                                                self.lookup,
-                                                f"Look up a specific class\nFormat: {self.prefix}lookup <XXX000> <season> <year>"
-                                                ),
-                        self.prefix + "grades":(
-                                                self.grades,
-                                                "See grade distribution for a class"
-                                                ),
-                        self.prefix + "subjects":(
-                                                self.subjects,
-                                                "See all course subjects"
-                                                ),
-                        #self.prefix + "random":(
-                        #                        self.random,
-                        #                        "Generate a random class"
-                        #                        ),
-                        self.prefix + "invite":(
-                                                self.get_invite,
-                                                "Invite axeBot to your own server"
-                                                ),
-                        self.prefix + "github":(
-                                                self.github,
-                                                "View the bot's code!"
-                                                ),
-                        }
-                        
-'''
