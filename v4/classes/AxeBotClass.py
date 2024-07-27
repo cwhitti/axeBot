@@ -96,15 +96,14 @@ class AxeBot:
         embed.title = f"{self.bot_name} Help"
         embed.description = \
             f'''Thanks for using {self.bot_name}. 
-            <HELP DESC>
             
-            ============== ♡ ♡ ♡ ♡ ♡ =============='
+            ============== ♡ ♡ ♡ ♡ ♡ ==============
             
             This bot was created to search up classes from the comfort
             of Discord. Because looking for classes can be annoying,
             the creators of this bot wanted a novel way to search them up.
 
-            Usage examples:
+            How do you use this bot? See examples of commands below!
 
             **Lookup**
             {self.prefix}lookup CS249
@@ -116,7 +115,11 @@ class AxeBot:
             {self.prefix}grades mat136 summer 2022  
             
             (!) This bot is not affiliated, sponsored, nor endorsed by NAU (!)
-            "**+===+ All Commands +===+**"'''
+
+            ============== ♡ ♡ ♡ ♡ ♡ ==============
+            '''
+
+        embed.set_thumbnail(url="https://i.pinimg.com/564x/4a/25/80/4a25805f04f4ba694d9fff4a41426799.jpg")
 
         for key, val in self.cmd_dict.items():
             desc = val[1]
@@ -148,24 +151,30 @@ class AxeBot:
 
         embed.title = "Uh Oh..."
         embed.description = ""
+        embed.set_thumbnail( url="https://lens-storage.storage.googleapis.com/png/8939f47429ad41ac8b086c18f47bd9d7")
         
         # parse message
         if not ( self._parse_msg( msg, search ) ):
 
             # fail out if not correct
             embed.title = "Bad Search"
-            embed.description = f"The correct syntax for this command is {self.prefix}grades <XXX000> <SEASON> <YEAR>"
+            desc = f'''The correct syntax for this command is {self.prefix}grades <XXX000> <SEASON> <YEAR>
+            
+            NOTE: Public records are only available for classes between 2005 and {search._dft_year}'''
+            
+            embed.description = desc
             embed.set_footer( text=f"Try {self.prefix}help for more information." )
             return False
 
         ################## Look up grades for course ##################
 
         if not self.gradeHandler.grades( embed, search ):
+            embed.title = f"Bad Search"
             embed.set_footer( text=f"Try {self.prefix}help for more information." )
             return False
 
-        embed.title = f"Grade Distribution: {(search.sub).upper()}{search.nbr}"
-        embed.description = ""
+        embed.title = f"{search.sub} {search.nbr} Grade Distribution"
+        embed.set_thumbnail( url="https://nau.edu/wp-content/uploads/sites/183/2020/08/26_Homecoming_Parade_20191026-13-300x300.jpeg")
         return True
 
     def lookup( self, msg, embed, logging ):
@@ -180,7 +189,11 @@ class AxeBot:
 
             # fail out if not correct
             embed.title = "Bad Search"
-            embed.description = f"The correct syntax for this command is {self.prefix}lookup <XXX000> <SEASON> <YEAR>"
+            desc = f'''The correct syntax for this command is {self.prefix}lookup <XXX000> <SEASON> <YEAR>
+            
+            NOTE: Public records are only available for classes between 2005 and {search._dft_year}'''
+            
+            embed.description = desc
             embed.set_footer( text=f"Try {self.prefix}help for more information.")
             return False
 
@@ -195,6 +208,38 @@ class AxeBot:
 
         return True
 
+    def subj_search( self, msg, embed, logging ):
+
+        search = Search( msg )
+        
+        # parse message
+        if not ( self._parse_msg( msg, search ) ):
+
+            # fail out if not correct
+            embed.title = "Bad Search"
+            desc = f'''The correct syntax for this command is {self.prefix}list <SUBJECT> <SEASON> <YEAR>
+            
+            NOTE: Public records are only available for classes between 2005 and {search._dft_year}'''
+            
+            embed.description = desc
+            embed.set_footer( text=f"Try {self.prefix}help for more information.")
+            return False
+
+        course = Course()
+        if not self._subj_search( search, course, embed ):
+
+            # fail out if not correct
+            embed.title = "Bad Search"
+            desc = f'''The correct syntax for this command is {self.prefix}list <SUBJECT> <SEASON> <YEAR>
+            
+            NOTE: Public records are only available for classes between 2005 and {search._dft_year}'''
+            
+            embed.description = desc
+            embed.set_footer( text=f"Try {self.prefix}help for more information.")
+            return False
+        
+        embed.title = f"Courses found for {search.sub} - {search.szn.capitalize()} {search.year}"
+        return True
     
     '''
     PRIVATE FUNCTIONS
@@ -376,7 +421,7 @@ class AxeBot:
             intyear = int( year )
             dft_year = int( search._dft_year )
 
-            if (intyear > dft_year):
+            if (intyear > dft_year) or (intyear < 2005 ):
                 return False
 
         except ValueError:
@@ -385,6 +430,9 @@ class AxeBot:
         # fail out early if subject not in list of subjects
         if sub not in subjectAbrvs.name_list:
             return False
+        
+        if szn not in search.szn_dict.keys():
+            szn = search.szn
 
         search.szn         = szn  # ex: "spring"
         search.year        = year # eg: "2021"
@@ -394,6 +442,37 @@ class AxeBot:
         search.ending      = ending.upper()  # ex: "w"   
 
         search.debug( DBG_FLAG )
+
+        return True
+
+    def _subj_search( self, search, course, embed ):
+
+         # Create link #1
+            # https://catalog.nau.edu/Courses/results?subject=ENG&catNbr=305&term=1247
+            # Need: subject, nbr, term
+        course.url1 = course.create_search_url( type="results", subject=search.sub, term=search.term)
+
+        # https://catalog.nau.edu/Courses/results?subject=CS&catNbr=126&term=1247
+        # https://catalog.nau.edu/Courses/results?subject=CS&catNbr=126&term=1247
+
+        # REQUEST LINK CONTENTS
+        code, resp = self.webHandler.search( course.url1 )
+
+        # check if request was valid
+        if code != 200 or resp == None:
+            embed.description = "Yikes, something odd happened. Contact the bot owner if you see this."
+            return False
+        
+        # Create empty list for courses
+        courses = []
+
+        # Extract course names
+        for a in resp.find_all( title='view course details'):
+            courses.append( a.get_text(strip=True) )
+
+        # courses = [a.get_text(strip=True) for a in resp.find_all('a', title='view course details')]
+
+        self.embedHandler.embed_subject( embed, courses )
 
         return True
 
@@ -435,8 +514,6 @@ class AxeBot:
         self.dft_color    = config.DFT_COLOR
         self.log_file     = config.LOG_FILE
         self.subjects     = subjectAbrvs.name_list
-
-        # initialize tables
         
         # intialize objects
         self.embedHandler = myEmbed()
@@ -461,26 +538,26 @@ class AxeBot:
                                                 "See grade distribution for a class",
                                                 False
                                                 ),
-                        # self.prefix + "subjects":(
-                        #                         self.subjects,
-                        #                         "See all course subjects",
+                        self.prefix + "list":(
+                                                self.subj_search,
+                                                "See all course subjects",
+                                                False
+                                                ),
+                        # self.prefix + "invite":(
+                        #                         self.get_invite,
+                        #                         "Invite axeBot to your own server",
                         #                         False
                         #                         ),
-                        self.prefix + "invite":(
-                                                self.get_invite,
-                                                "Invite axeBot to your own server",
-                                                False
-                                                ),
-                        self.prefix + "github":(
-                                                self.get_github,
-                                                "View the bot's code!",
-                                                False
-                                                ),
-                        self.prefix + "logs":(
-                                                self.get_logs,
-                                                "Recieve bot logs via DM",
-                                                True
-                                            )
+                        # self.prefix + "github":(
+                        #                         self.get_github,
+                        #                         "View the bot's code!",
+                        #                         False
+                        #                         ),
+                        # self.prefix + "logs":(
+                        #                         self.get_logs,
+                        #                         "Recieve bot logs via DM",
+                        #                         True
+                        #                     )
                         }
 
 

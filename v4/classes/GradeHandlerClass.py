@@ -1,13 +1,11 @@
 import ssl
 import requests
 import urllib3
-from secret import URL as url
+from secret import PREFIX, URL as url
 from bs4 import BeautifulSoup
 from classes.CourseClass import Course
 from classes.SearchClass import Search
 from classes.EmbedClass import myEmbed
-
-
 
 class GradeHandler:
 
@@ -32,10 +30,41 @@ class GradeHandler:
         courses = []
 
         if not self._grades( search, courses ):
-            embed.description = "Sorry, we were unable to find the grades for this course."
+
+            new_szn, new_yr = search.decrease_term()
+
+            embed.add_field(name="", value= f'''
+                **Term**
+                {search.szn.capitalize()} {search.year}
+
+                **What happened?**
+                This class may not exist in the system due to one of the following reasons:
+
+                👉 **Too Few Students**: To protect student privacy, grade distributions are not available for undergraduate classes with fewer than ten students enrolled or for graduate classes with fewer than five students enrolled.
+
+                👉 **No Records**: Public records not yet available, or class does not exist.
+
+                👉 **Off-season**: Some classes are Spring/Fall only. Try searching for another semester.
+                
+                👉 **Nonexistant Class**: There is no class with this code
+
+                ** Suggested Commands**
+                {PREFIX}help
+                {PREFIX}list {search.sub} {search.szn} { int(search.year) - 1}
+                {PREFIX}grades {search.sub} {search.nbr}{search.ending} {new_szn} {new_yr}
+                ''',
+                inline=False)
+
             return False
 
         self.embedHandler.embed_grades( embed, search, courses )
+        # embed.add_field(name="", value= f'''
+        #                 **Term**
+        #                 {search.szn} {search.year}
+
+        #                 **What happened?**
+        #                 There are no public grades available for {search.sub} {search.nbr}.''')
+
         return True
         
     
@@ -72,6 +101,7 @@ class GradeHandler:
 
         # fail out if bad page
         if not self._resp_200( response ):
+            # print("This is bad")
             return False
         
         # get the soup
@@ -145,6 +175,7 @@ class GradeHandler:
 
                 courses.append( course )
 
+            # all good
             return True
         
         # No courses found
@@ -167,7 +198,7 @@ class GradeHandler:
 
             search.term = search.calculate_term( search.szn, search.year )
 
-            self._grades( search, course )
+            return self._grades( search, course )
 
         if (event_validation != None):
 

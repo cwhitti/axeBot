@@ -1,5 +1,6 @@
 import discord 
 import config as cfg
+from secret import PREFIX
 import scripts.pieChart as pc
 from datetime import datetime
 from classes.CourseClass import Course
@@ -12,10 +13,36 @@ class myEmbed:
 
     def embed_grades( self, embed, search, courses:list ):
         
+        profs = {}
+        
+        desc = ""
+
+        for course in courses:
+            details = self.embed_course_grades( course, search)
+
+            if len(details) + len(desc ) <= 4000:
+
+                desc += details
+            
+            else:
+                desc += "```Omitted 1 Class```"
+
+        # desc += "```  CLASS DESTRIBUTION   ```"
+        # desc += f'''
+        # _*Passing grades are counted as A, B, C_
+        # '''
+
+        if len( desc) < 4096:
+            embed.description = desc
+        
+        else:
+            embed.description = "```ERROR: Too many classes to display!```"
+
+        embed.set_footer(text=f"Based on the {search.szn.capitalize()} {search.year} catalog")
+
         filename = cfg.PIE_CHART_FILE
-        pc.create_figure( filename, courses)
-        embed.set_footer(text=f"Based on {search.szn} {search.year} records.")
-        embed.set_thumbnail(url="https://i.pinimg.com/564x/4a/25/80/4a25805f04f4ba694d9fff4a41426799.jpg")
+
+        pc.create_figure( filename, search, courses)
 
 
     def embed_course( self, embed, course, search ):
@@ -56,6 +83,97 @@ class myEmbed:
             inline=False)
 
         embed.set_footer(text=f"Based on {szn.capitalize()} {course_cat} catalogue")
+
+    def embed_course_grades( self, course, search, ):
+
+        details = f''''''
+
+        if course.grades["P"] != '0':
+
+            passed = int(course.grades["P"])
+            failed = int(course.grades["F"])
+            w = int(course.grades["W"])
+            total = int(course.grades["total"])
+
+            pct_pass = round((passed / total) * 100, 2)
+            pct_fail = round((failed / total) * 100, 2) 
+            pct_w = round((w / total) * 100, 2)
+
+        else:
+            a = course.grades["A"]
+            b = course.grades["B"]
+            c = course.grades["C"]
+            d = course.grades["D"]
+            f = course.grades["F"]
+            w = course.grades["W"]
+            total = course.grades["total"]
+
+            passed = int(a) + int(b) + int(c)
+            failed = int(d) + int(f)
+
+            total = int(total)
+            w = int(w)
+            
+            pct_pass = round((passed / total) * 100, 2)
+            pct_fail = round((failed / total) * 100, 2) 
+            pct_w = round((w / total) * 100, 2)
+
+
+        details += \
+        f'''
+        **Section {course.section} - {course.prof}**
+            ```
+✅ {pct_pass}% Passed
+🚸 {pct_w}% Dropped
+🛑 {pct_fail}% Failed
+👥 {total} Enrolled ```
+            '''
+
+        return details 
+    
+    def embed_subject( self, embed, courses:list ):
+    
+        desc = f"\n**Listing {len(courses)} courses:\n**"
+
+        embed.description = desc
+
+        for coursename in courses:
+
+            words = coursename.split()
+            desc += f"• {words[0]} {words[1]}\n"
+
+        # while index < len( courses ):
+            
+        #     # empty chunk
+        #     chunk = ""
+
+        #     # check for good to add
+        #     if len( chunk ) + len( courses[index] ) < 4096 and embedlen < 6000:
+
+        #         # words = coursename.split()
+        #         # desc += f"• {words[0]} {words[1]}\n"
+
+        #         # Grab coursename
+        #         coursename = courses[index]
+
+        #         # add to chunk
+        #         chunk += f"• {coursename}\n"
+
+        #         # prime for next loop
+        #         index += 1
+                
+        #     else:
+        #         embed.add_field( name="hiii", value=chunk)
+        #         embedlen += len(chunk)
+        #         chunk = ""
+            
+        #     embed.add_field( name="hiiix2", value=chunk)
+
+        desc += f'''\n**Suggested Commands**
+                    {PREFIX}lookup <XXX000> <SEASON> <YEAR>
+                    {PREFIX}grades <XXX000> <SEASON> <YEAR>'''
+        
+        embed.description = desc
 
     def get_formatted_time( self ):
         # Get the current datetime

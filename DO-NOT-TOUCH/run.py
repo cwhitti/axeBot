@@ -1,6 +1,6 @@
 from secret import LOG_FILE
 import logging
-import bot
+import v4.bot as bot
 import sys
 
 debug = False

@@ -41,11 +41,11 @@ def run_discord_bot( ):
             async with msg.channel.typing():
 
                 if file != None:
-                     await msg.channel.send( embed=embed, file=file )
+                     await msg.reply( embed=embed, file=file )
 
                 else:
 
-                    await msg.channel.send( embed=embed )
+                    await msg.reply( embed=embed )
 
                 return 0
 
