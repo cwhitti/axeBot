@@ -95,26 +95,16 @@ class AxeBot:
 
         embed.title = f"{self.bot_name} Help"
         embed.description = \
-            f'''Thanks for using {self.bot_name}. 
-            
+            f'''
             ============== ♡ ♡ ♡ ♡ ♡ ==============
+            Thank you for using {self.bot_name}!
             
             This bot was created to search up classes from the comfort
             of Discord. Because looking for classes can be annoying,
             the creators of this bot wanted a novel way to search them up.
+            This bot is not endorsed by NAU.
 
-            How do you use this bot? See examples of commands below!
-
-            **Lookup**
-            {self.prefix}lookup CS249
-            {self.prefix}lookup BIO 181L Spring 2011 
-            {self.prefix}lookup cs212 summer 2017  
-
-            **Grades**
-            {self.prefix}grades CS126L 
-            {self.prefix}grades mat136 summer 2022  
-            
-            (!) This bot is not affiliated, sponsored, nor endorsed by NAU (!)
+            How do you use this bot? Take a look at the commands below!
 
             ============== ♡ ♡ ♡ ♡ ♡ ==============
             '''
@@ -126,7 +116,7 @@ class AxeBot:
             is_admin = val[2]
 
             if not is_admin:
-                embed.add_field(name=key, value=desc, inline=True )
+                embed.add_field(name=f"{key}", value=desc, inline=False )
 
         return True
 
@@ -524,23 +514,33 @@ class AxeBot:
         self.cmd_dict = {
                         self.prefix + "help": (
                                                 self.help,
-                                                "List of commands",
+                                                "List of commands\n",
                                                 False
                                                 
                                                 ),
                         self.prefix + "lookup": (
                                                 self.lookup,
-                                                f"Look up a specific class\nFormat: {self.prefix}lookup <XXX000> <season> <year>",
+                                                f''' Look up a specific class. Defaults to the current semester.
+                                                ➡ _Example: {self.prefix}lookup CS 249_
+                                                ➡ _Example: {self.prefix}lookup BIO 181L Spring 2011_
+                                                ➡ _Format: {self.prefix}lookup <XXX000> <season> <year>_\n''',
                                                 False
                                                 ),
                         self.prefix + "grades":(
                                                 self.grades,
-                                                "See grade distribution for a class",
+                                                f'''➡ See grade distribution for a class. Defaults to the most recently released grades.
+                                                ➡ _Example: {self.prefix}grades eng305w_
+                                                ➡ _Example: {self.prefix}grades PSY255 Spring 2011_
+                                                ➡ _Format: {self.prefix}grades <XXX000> <season> <year>_\n
+                                                ''',
                                                 False
                                                 ),
                         self.prefix + "list":(
                                                 self.subj_search,
-                                                "See all course subjects",
+                                                f''' Look up all classes under a subject
+                                                ➡ _Example: {self.prefix}list eng_
+                                                ➡ _Example: {self.prefix}list MAT summer 2020_
+                                                ➡ _Format: {self.prefix}list <SUBJECT> <season> <year>_\n''',
                                                 False
                                                 ),
                         # self.prefix + "invite":(
