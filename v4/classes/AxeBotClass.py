@@ -99,13 +99,12 @@ class AxeBot:
             ============== ♡ ♡ ♡ ♡ ♡ ==============
             Thank you for using {self.bot_name}!
             
-            This bot was created to search up classes from the comfort
-            of Discord. Because looking for classes can be annoying,
-            the creators of this bot wanted a novel way to search them up.
-            This bot is not endorsed by NAU.
+            This bot was created to search up classes and grades from the 
+            comfort of Discord. The intent of this bot is to improve students
+            experiences searching for and enrolling in classes. 
+            This bot is an independent project from a current student.
 
             How do you use this bot? Take a look at the commands below!
-
             ============== ♡ ♡ ♡ ♡ ♡ ==============
             '''
 
@@ -528,7 +527,7 @@ class AxeBot:
                                                 ),
                         self.prefix + "grades":(
                                                 self.grades,
-                                                f'''➡ See grade distribution for a class. Defaults to the most recently released grades.
+                                                f'''See grade distribution for a class. Defaults to the most recently released grades.
                                                 ➡ _Example: {self.prefix}grades eng305w_
                                                 ➡ _Example: {self.prefix}grades PSY255 Spring 2011_
                                                 ➡ _Format: {self.prefix}grades <XXX000> <season> <year>_\n
