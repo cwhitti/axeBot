@@ -29,12 +29,16 @@ class GradeHandler:
         # init variables
         courses = []        # initialize list for courses
         tries = 0
+        tried_str = "" 
 
         # begin the first lookup
         success = self._grades( search, courses)
 
         # begin trying to get grades
         while (tries < self.max_tries) and success != True:
+
+            # add to tried str
+            tried_str += f"• {search.szn.capitalize()} {search.year}\n"
 
             # clear course list
             courses.clear()
@@ -58,30 +62,22 @@ class GradeHandler:
 
         else:
 
-            new_szn, new_yr = search.decrease_term()
-
             embed.add_field(name="", value= f'''
-                **Term**
-                {search.szn.capitalize()} {search.year}
+**What happened?**
+I searched the past {self.max_tries} semesters for {search.sub}{search.nbr}{search.ending} and couldn't find anything. This class may not exist in the system due to one of the following reasons:
 
-                **What happened?**
-                This class may not exist in the system due to one of the following reasons:
+👉 **Too Few Students**: To protect student privacy, grade distributions are not available for __undergraduate classes with fewer than 10 students__ enrolled or for __graduate classes with fewer than 5 students__ enrolled.
 
-                👉 **Too Few Students**: To protect student privacy, grade distributions are not available for undergraduate classes with fewer than ten students enrolled or for graduate classes with fewer than five students enrolled.
+👉 **No Records**: No records exist for this class.
 
-                👉 **No Records**: Public records not yet available, or class does not exist.
+👉 **Nonexistant Class**: There is no class with this code
 
-                👉 **Off-season**: Some classes are Spring/Fall only. Try searching for another semester.
+👉 **Off-season**: Some classes are Spring/Fall only. Try searching for another semester.
 
-                👉 **Nonexistant Class**: There is no class with this code
-
-                ** Suggested Commands**
-                {PREFIX}help
-                {PREFIX}list {search.sub} {search.szn} { int(search.year) - 1}
-                {PREFIX}grades {search.sub} {search.nbr}{search.ending} {new_szn} {new_yr}
-                ''',
+**Terms Searched**
+{tried_str}
+''',
                 inline=False)
-
         return success
         
     
@@ -265,10 +261,6 @@ class GradeHandler:
         except AttributeError:
 
             #print("We got here 3.1")
-
-            
-
-            print(f"NOTHING FOUND FOR {search.szn} {search.year}")
             # search.szn, search.year = search.decrease_term( )
             # print(f" --> NOW SEARCHING {search.szn} {search.year}")
 

@@ -146,7 +146,7 @@ class AxeBot:
         if not ( self._parse_msg( msg, search ) ):
 
             # fail out if not correct
-            embed.title = "Bad Search"
+            embed.title = "Incorrect Syntax"
             desc = f'''The correct syntax for this command is {self.prefix}grades <XXX000> <SEASON> <YEAR>
             
             NOTE: Public records are only available for classes between 2005 and {search._dft_year}'''
@@ -205,7 +205,7 @@ class AxeBot:
         if not ( self._parse_msg( msg, search ) ):
 
             # fail out if not correct
-            embed.title = "Bad Search"
+            embed.title = "Bad Seaech"
             desc = f'''The correct syntax for this command is {self.prefix}list <SUBJECT> <SEASON> <YEAR>
             
             NOTE: Public records are only available for classes between 2005 and {search._dft_year}'''
@@ -218,7 +218,7 @@ class AxeBot:
         if not self._subj_search( search, course, embed ):
 
             # fail out if not correct
-            embed.title = "Bad Search"
+            embed.title = "No Records Found"
             desc = f'''The correct syntax for this command is {self.prefix}list <SUBJECT> <SEASON> <YEAR>
             
             NOTE: Public records are only available for classes between 2005 and {search._dft_year}'''
@@ -429,6 +429,7 @@ class AxeBot:
         search.sub         = sub  # ex: "CS"
         search.nbr         = nbr # #ex: "249"
         search.ending      = ending.upper()  # ex: "w"   
+        #search.search_code = sub.upper()+nbr+ending.upper() # ex: "CS249"
 
         search.debug( DBG_FLAG )
 
