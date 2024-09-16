@@ -19,7 +19,7 @@ class Search:
         # POTENTIAL ISSUE: YEAR CAN BE '222q', WHERE term = 12q7
         return "1" + year[2:] + szn_code
     
-    def decrease_term( self ):
+    def decrease_term( self ) -> str:
 
         szn = self.szn.lower()
         new_yr = self.year.lower()
@@ -39,7 +39,9 @@ class Search:
         else:
             new_szn = "fall"
 
-        return new_szn, new_yr
+        term = self.calculate_term(new_szn, new_yr)
+
+        return new_szn, new_yr, term
     
     def reset_search( self ):
         

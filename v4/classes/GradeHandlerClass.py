@@ -24,56 +24,130 @@ class GradeHandler:
     '''
     PUBLIC FUNCTIONS
     '''    
-    def grades( self, embed:myEmbed, search:Search ):
+    def grades( self, embed:myEmbed, search:Search ) -> bool: 
 
-        # initialize list for courses
-        courses = []
+        # init variables
+        courses = []        # initialize list for courses
+        tries = 0
+        tried_str = "" 
 
-        if not self._grades( search, courses ):
+        # begin the first lookup
+        success = self._grades( search, courses)
 
-            new_szn, new_yr = search.decrease_term()
+        # begin trying to get grades
+        while (tries < self.max_tries) and success != True:
+
+            # add to tried str
+            tried_str += f"• {search.szn.capitalize()} {search.year}\n"
+
+            # clear course list
+            courses.clear()
+
+            # increase try count
+            tries += 1
+
+            # decrease szn and year
+            search.szn, search.year, search.term = search.decrease_term()
+
+            # descrease term
+
+            # next lookup
+            success = self._grades( search, courses )
+
+
+        # check if we found something
+        if success == True:
+
+            self.embedHandler.embed_grades( embed, search, courses )
+
+        else:
 
             embed.add_field(name="", value= f'''
-                **Term**
-                {search.szn.capitalize()} {search.year}
+**What happened?**
+I searched the past {self.max_tries} semesters for {search.sub}{search.nbr}{search.ending} and couldn't find anything. This class may not exist in the system due to one of the following reasons:
 
-                **What happened?**
-                This class may not exist in the system due to one of the following reasons:
+👉 **Too Few Students**: To protect student privacy, grade distributions are not available for __undergraduate classes with fewer than 10 students__ enrolled or for __graduate classes with fewer than 5 students__ enrolled.
 
-                👉 **Too Few Students**: To protect student privacy, grade distributions are not available for undergraduate classes with fewer than ten students enrolled or for graduate classes with fewer than five students enrolled.
+👉 **No Records**: No records exist for this class.
 
-                👉 **No Records**: Public records not yet available, or class does not exist.
+👉 **Nonexistant Class**: There is no class with this code
 
-                👉 **Off-season**: Some classes are Spring/Fall only. Try searching for another semester.
-                
-                👉 **Nonexistant Class**: There is no class with this code
+👉 **Off-season**: Some classes are Spring/Fall only. Try searching for another semester.
 
-                ** Suggested Commands**
-                {PREFIX}help
-                {PREFIX}list {search.sub} {search.szn} { int(search.year) - 1}
-                {PREFIX}grades {search.sub} {search.nbr}{search.ending} {new_szn} {new_yr}
-                ''',
+**Terms Searched**
+{tried_str}
+''',
                 inline=False)
-
-            return False
-
-        self.embedHandler.embed_grades( embed, search, courses )
-        # embed.add_field(name="", value= f'''
-        #                 **Term**
-        #                 {search.szn} {search.year}
-
-        #                 **What happened?**
-        #                 There are no public grades available for {search.sub} {search.nbr}.''')
-
-        return True
+        return success
         
     
-    def __init__(self) -> None:
+    def __init__(self, max_tries) -> None:
         self.course = None
         self.search = None
+        self.max_tries = max_tries
 
         self.embedHandler = myEmbed()
 
+    def _find_classes( self, soup, classCode, courses ) -> bool:
+        entries = []
+        info = soup.find_all('td', string=classCode)
+
+        if info != None:
+
+            for td_tag in info:
+
+                tr_tag = td_tag.parent  # Get the parent <tr> tag
+                entry = [td.text for td in tr_tag.find_all('td')]
+                entries.append(entry)
+
+            if len(entries) != 0:
+
+                for entry in entries:
+
+                    course = Course()
+
+                    course.name = entry[0]
+                    course.section = entry[1]
+                    course.nbr = entry[2]
+                    course.prof = entry[3]
+                    
+                    a = entry[4]
+                    b = entry[5]
+                    c = entry[6]
+                    d = entry[7]
+                    f = entry[8]
+                    au = entry[9]
+                    p = entry[10]
+                    ng = entry[11]
+                    w = entry[12]
+                    i = entry[13]
+                    ip = entry[14]
+                    pen = entry[15]
+                    total = entry[16]
+
+                    course.grades = {
+                                        "total": total,
+                                        "A": a,
+                                        "B": b,
+                                        "C": c,
+                                        "D": d,
+                                        "F": f,
+                                        "AU": au,
+                                        "P": p,
+                                        "NG": ng,
+                                        "W": w,
+                                        "I": i,
+                                        "IP": ip,
+                                        "Pen": pen
+                                    }
+
+                    courses.append( course )
+
+                # all good
+                return True
+        
+        # No courses found
+        return False
     def _get_legacy_session( self ):
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
         ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
@@ -82,9 +156,10 @@ class GradeHandler:
         return session
     
     def _get_soup( self, resp ):
+
         return BeautifulSoup(resp.content, 'html.parser')
     
-    def _grades(self, search:Search, courses:list ):
+    def _grades(self, search:Search, courses:list )  -> bool:
 
         # declare variables
         term = search.term
@@ -92,6 +167,8 @@ class GradeHandler:
         classNbr = search.nbr
         endLetter = search.ending
         classCode = classSub + " " + classNbr + endLetter
+
+        #print(f"Now searching: {classCode} in {search.szn} {search.year}")
 
         # Send GET request to get initial page
         session = self._get_legacy_session()
@@ -104,102 +181,97 @@ class GradeHandler:
             # print("This is bad")
             return False
         
+        #print("We got here 1")
+        
+        #print( response )
+        
+        #print(f"resp 1= {response}\n\n\n")
         # get the soup
         soup = self._get_soup( response )
 
+        #print(f"Soup 1= {soup}\n\n\n")
+
         # trigger the subject page
         response = self._post_subject( session, soup, term )
+
+        #print(f"resp 2 = {response}\n\n\n")
+
 
         # fail out if bad page
         if response == None:
             return False
         
-        soup = self._get_soup(response)
+        #print("We got here 2")
+        
+        if not self._resp_200( response ):
+            return False
+        
+        #print("We got here 3")
+        
+        soup = self._get_soup( response )
+
+        #print(soup)
 
         response = self._post_nbr( session, soup, term, classSub, search, courses )
 
         if response == None:
             return False
+    
 
+
+        #print( type(response) )
+
+        # if response == True or response == False:
+
+        #     # weird recursion thing, since post_nbr works by recursively returning _grades if
+        #     # we need to decrease the term. So at some point, 'response' becomes True.
+        #     # That means our grades went through successfully, so it would be redundant
+        #     # to send another.
+        #     # This is super gross I'm sorry
+        #     return response
+    
+
+        if not self._resp_200( response ):
+            return False
+    
         soup = self._get_soup(response)
 
-        entries = []
-        info = soup.find_all('td', string=classCode)
+        return self._find_classes( soup, classCode, courses )
 
-        for td_tag in info:
 
-            tr_tag = td_tag.parent  # Get the parent <tr> tag
-            entry = [td.text for td in tr_tag.find_all('td')]
-            entries.append(entry)
-
-        if len(entries) != 0:
-
-            for entry in entries:
-
-                course = Course()
-
-                course.name = entry[0]
-                course.section = entry[1]
-                course.nbr = entry[2]
-                course.prof = entry[3]
-                
-                a = entry[4]
-                b = entry[5]
-                c = entry[6]
-                d = entry[7]
-                f = entry[8]
-                au = entry[9]
-                p = entry[10]
-                ng = entry[11]
-                w = entry[12]
-                i = entry[13]
-                ip = entry[14]
-                pen = entry[15]
-                total = entry[16]
-
-                course.grades = {
-                                    "total": total,
-                                    "A": a,
-                                    "B": b,
-                                    "C": c,
-                                    "D": d,
-                                    "F": f,
-                                    "AU": au,
-                                    "P": p,
-                                    "NG": ng,
-                                    "W": w,
-                                    "I": i,
-                                    "IP": ip,
-                                    "Pen": pen
-                                }
-
-                courses.append( course )
-
-            # all good
-            return True
-        
-        # No courses found
-        return False
-
-    def _resp_200( self, resp ):
+    def _resp_200( self, resp ) -> bool:
         return resp.status_code == 200
      
     def _post_nbr( self, session, soup, term, classSub, search:Search, course:Course):
 
         try:
+
+            #print(f"Incoming soup: {soup}")
+
+            #soup.find('input', {'name': '__EVENTVALIDATION'}).get('value')
             # Extract the __VIEWSTATE and __EVENTVALIDATION values from the page
             view_state = soup.find('input', {'name': '__VIEWSTATE'}).get('value')
             event_validation = soup.find('input', {'name': '__EVENTVALIDATION'}).get('value')
 
+            #print(f"event validation: {event_validation}")
+
         # recursively go backwards so we can find the grade
+
+        # NO DONT DO RECURSION HERE!!!!!!
         except AttributeError:
 
-            search.szn, search.year = search.decrease_term( )
+            #print("We got here 3.1")
+            # search.szn, search.year = search.decrease_term( )
+            # print(f" --> NOW SEARCHING {search.szn} {search.year}")
 
-            search.term = search.calculate_term( search.szn, search.year )
+            # search.term = search.calculate_term( search.szn, search.year )
 
-            return self._grades( search, course )
+            # # should this return the bool? probably not
+            # return self._grades( search, course )
 
+            return None
+
+            
         if (event_validation != None):
 
             # Prepare the payload with updated form data and the extracted values
@@ -213,9 +285,12 @@ class GradeHandler:
 
             response = session.post(url, data=payload)
 
+            #print(f"THIS SHOULD BE 200: {response}")
+
             if self._resp_200( response ):
                 return response
-            
+        
+        # we messed up?
         print(" Something went wrong again")
         return None
     

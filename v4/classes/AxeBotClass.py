@@ -146,7 +146,7 @@ class AxeBot:
         if not ( self._parse_msg( msg, search ) ):
 
             # fail out if not correct
-            embed.title = "Bad Search"
+            embed.title = "Incorrect Syntax"
             desc = f'''The correct syntax for this command is {self.prefix}grades <XXX000> <SEASON> <YEAR>
             
             NOTE: Public records are only available for classes between 2005 and {search._dft_year}'''
@@ -205,7 +205,7 @@ class AxeBot:
         if not ( self._parse_msg( msg, search ) ):
 
             # fail out if not correct
-            embed.title = "Bad Search"
+            embed.title = "Bad Seaech"
             desc = f'''The correct syntax for this command is {self.prefix}list <SUBJECT> <SEASON> <YEAR>
             
             NOTE: Public records are only available for classes between 2005 and {search._dft_year}'''
@@ -218,7 +218,7 @@ class AxeBot:
         if not self._subj_search( search, course, embed ):
 
             # fail out if not correct
-            embed.title = "Bad Search"
+            embed.title = "No Records Found"
             desc = f'''The correct syntax for this command is {self.prefix}list <SUBJECT> <SEASON> <YEAR>
             
             NOTE: Public records are only available for classes between 2005 and {search._dft_year}'''
@@ -429,6 +429,7 @@ class AxeBot:
         search.sub         = sub  # ex: "CS"
         search.nbr         = nbr # #ex: "249"
         search.ending      = ending.upper()  # ex: "w"   
+        #search.search_code = sub.upper()+nbr+ending.upper() # ex: "CS249"
 
         search.debug( DBG_FLAG )
 
@@ -462,6 +463,8 @@ class AxeBot:
         # courses = [a.get_text(strip=True) for a in resp.find_all('a', title='view course details')]
 
         self.embedHandler.embed_subject( embed, courses )
+
+        embed.set_footer(text=f"Based on {search.szn.capitalize()} {search.year} catalogue")
 
         return True
 
@@ -502,12 +505,14 @@ class AxeBot:
         self.owner        = config.OWNER
         self.dft_color    = config.DFT_COLOR
         self.log_file     = config.LOG_FILE
+        self.max_tries    = config.MAX_TRIES
         self.subjects     = subjectAbrvs.name_list
+        
         
         # intialize objects
         self.embedHandler = myEmbed()
         self.webHandler   = WebHandler()
-        self.gradeHandler = GradeHandler()
+        self.gradeHandler = GradeHandler( self.max_tries )
 
         # commands
         self.cmd_dict = {
@@ -537,7 +542,7 @@ class AxeBot:
                         self.prefix + "list":(
                                                 self.subj_search,
                                                 f''' Look up all classes under a subject
-                                                ➡ _Example: {self.prefix}list eng_
+                                                ➡ _Example: {self.prefix}list eng
                                                 ➡ _Example: {self.prefix}list MAT summer 2020_
                                                 ➡ _Format: {self.prefix}list <SUBJECT> <season> <year>_\n''',
                                                 False

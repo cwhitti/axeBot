@@ -134,44 +134,17 @@ class myEmbed:
     def embed_subject( self, embed, courses:list ):
     
         desc = f"\n**Listing {len(courses)} courses:\n**"
-
         embed.description = desc
 
+        chunk = ""
+
+        # embed the courses, just the numbers
         for coursename in courses:
 
+            #line = f"• {coursename}\n"
             words = coursename.split()
-            desc += f"• {words[0]} {words[1]}\n"
-
-        # while index < len( courses ):
-            
-        #     # empty chunk
-        #     chunk = ""
-
-        #     # check for good to add
-        #     if len( chunk ) + len( courses[index] ) < 4096 and embedlen < 6000:
-
-        #         # words = coursename.split()
-        #         # desc += f"• {words[0]} {words[1]}\n"
-
-        #         # Grab coursename
-        #         coursename = courses[index]
-
-        #         # add to chunk
-        #         chunk += f"• {coursename}\n"
-
-        #         # prime for next loop
-        #         index += 1
-                
-        #     else:
-        #         embed.add_field( name="hiii", value=chunk)
-        #         embedlen += len(chunk)
-        #         chunk = ""
-            
-        #     embed.add_field( name="hiiix2", value=chunk)
-
-        desc += f'''\n**Suggested Commands**
-                    {PREFIX}lookup <XXX000> <SEASON> <YEAR>
-                    {PREFIX}grades <XXX000> <SEASON> <YEAR>'''
+            line = f"• {words[0]}{words[1]}\n"
+            desc += line
         
         embed.description = desc
 

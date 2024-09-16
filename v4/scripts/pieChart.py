@@ -8,6 +8,31 @@ from classes.CourseClass import Course
 
 SEPERATE = 0
 
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+# I HATE NUMPY
+
+# I HATE NUMPY
+# I HATE NUMPY
+
+# dont ask me to explain the numpy code please i will explode
+# - claire
+
 def combine_images(image_files, output_file):
     # Open all images and determine their sizes
     images = [Image.open(image_file) for image_file in image_files]
