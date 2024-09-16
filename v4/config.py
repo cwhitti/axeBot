@@ -17,7 +17,7 @@ ERR_COLOR = 0xb52f43
 REACTION1 = "👀"
 REACTION2 = "👍"
 
-DFT_SZN = "spring"
+DFT_SZN = "fall"
 DFT_YEAR = "2024"
 DFT_TERM = calculate_term( DFT_SZN, DFT_YEAR )
 

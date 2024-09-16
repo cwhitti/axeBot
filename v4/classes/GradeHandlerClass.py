@@ -74,6 +74,66 @@ class GradeHandler:
 
         self.embedHandler = myEmbed()
 
+    def _find_classes( self, soup, classCode, courses ):
+        entries = []
+        info = soup.find_all('td', string=classCode)
+
+        if info != None:
+
+            for td_tag in info:
+
+                tr_tag = td_tag.parent  # Get the parent <tr> tag
+                entry = [td.text for td in tr_tag.find_all('td')]
+                entries.append(entry)
+
+            if len(entries) != 0:
+
+                for entry in entries:
+
+                    course = Course()
+
+                    course.name = entry[0]
+                    course.section = entry[1]
+                    course.nbr = entry[2]
+                    course.prof = entry[3]
+                    
+                    a = entry[4]
+                    b = entry[5]
+                    c = entry[6]
+                    d = entry[7]
+                    f = entry[8]
+                    au = entry[9]
+                    p = entry[10]
+                    ng = entry[11]
+                    w = entry[12]
+                    i = entry[13]
+                    ip = entry[14]
+                    pen = entry[15]
+                    total = entry[16]
+
+                    course.grades = {
+                                        "total": total,
+                                        "A": a,
+                                        "B": b,
+                                        "C": c,
+                                        "D": d,
+                                        "F": f,
+                                        "AU": au,
+                                        "P": p,
+                                        "NG": ng,
+                                        "W": w,
+                                        "I": i,
+                                        "IP": ip,
+                                        "Pen": pen
+                                    }
+
+                    courses.append( course )
+
+                # all good
+                return True
+        
+        # No courses found
+        return False
     def _get_legacy_session( self ):
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
         ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
@@ -82,6 +142,7 @@ class GradeHandler:
         return session
     
     def _get_soup( self, resp ):
+
         return BeautifulSoup(resp.content, 'html.parser')
     
     def _grades(self, search:Search, courses:list ):
@@ -104,82 +165,51 @@ class GradeHandler:
             # print("This is bad")
             return False
         
+        #print( response )
+        
+        #print(f"resp 1= {response}\n\n\n")
         # get the soup
         soup = self._get_soup( response )
 
+        #print(f"Soup 1= {soup}\n\n\n")
+
         # trigger the subject page
         response = self._post_subject( session, soup, term )
+
+        #print(f"resp 2 = {response}\n\n\n")
+
 
         # fail out if bad page
         if response == None:
             return False
         
-        soup = self._get_soup(response)
+        if not self._resp_200( response ):
+            return False
+        
+        soup = self._get_soup( response )
+        
+        #print(f"Soup 2= {soup}\n\n\n")
 
         response = self._post_nbr( session, soup, term, classSub, search, courses )
+        
+              # weird recursion thing, since post_nbr works by recursively returning _grades if
+        # we need to decrease the term. So at some point, 'response' becomes True.
+        # That means our grades went through successfully, so it would be redundant
+        # to send another.
+        # This is super gross I'm sorry
 
-        if response == None:
+        #print( type(response) )
+
+        if response == True or response == False:
+            return response
+        
+        if not self._resp_200( response ):
             return False
-
+    
         soup = self._get_soup(response)
 
-        entries = []
-        info = soup.find_all('td', string=classCode)
+        return self._find_classes( soup, classCode, courses )
 
-        for td_tag in info:
-
-            tr_tag = td_tag.parent  # Get the parent <tr> tag
-            entry = [td.text for td in tr_tag.find_all('td')]
-            entries.append(entry)
-
-        if len(entries) != 0:
-
-            for entry in entries:
-
-                course = Course()
-
-                course.name = entry[0]
-                course.section = entry[1]
-                course.nbr = entry[2]
-                course.prof = entry[3]
-                
-                a = entry[4]
-                b = entry[5]
-                c = entry[6]
-                d = entry[7]
-                f = entry[8]
-                au = entry[9]
-                p = entry[10]
-                ng = entry[11]
-                w = entry[12]
-                i = entry[13]
-                ip = entry[14]
-                pen = entry[15]
-                total = entry[16]
-
-                course.grades = {
-                                    "total": total,
-                                    "A": a,
-                                    "B": b,
-                                    "C": c,
-                                    "D": d,
-                                    "F": f,
-                                    "AU": au,
-                                    "P": p,
-                                    "NG": ng,
-                                    "W": w,
-                                    "I": i,
-                                    "IP": ip,
-                                    "Pen": pen
-                                }
-
-                courses.append( course )
-
-            # all good
-            return True
-        
-        # No courses found
-        return False
 
     def _resp_200( self, resp ):
         return resp.status_code == 200
@@ -187,17 +217,26 @@ class GradeHandler:
     def _post_nbr( self, session, soup, term, classSub, search:Search, course:Course):
 
         try:
+
+            #print(f"Incoming soup: {soup}")
+
+            #soup.find('input', {'name': '__EVENTVALIDATION'}).get('value')
             # Extract the __VIEWSTATE and __EVENTVALIDATION values from the page
             view_state = soup.find('input', {'name': '__VIEWSTATE'}).get('value')
             event_validation = soup.find('input', {'name': '__EVENTVALIDATION'}).get('value')
 
+            #print(f"event validation: {event_validation}")
+
         # recursively go backwards so we can find the grade
         except AttributeError:
 
+            #print(f"NOTHING FOUND FOR {search.szn} {search.year}")
             search.szn, search.year = search.decrease_term( )
+            #print(f" --> NOW SEARCHING {search.szn} {search.year}")
 
             search.term = search.calculate_term( search.szn, search.year )
 
+            # should this return the bool? probably not
             return self._grades( search, course )
 
         if (event_validation != None):
@@ -212,6 +251,8 @@ class GradeHandler:
             }
 
             response = session.post(url, data=payload)
+
+            # print(f"THIS SHOULD BE 200: {response}")
 
             if self._resp_200( response ):
                 return response

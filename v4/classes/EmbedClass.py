@@ -134,14 +134,31 @@ class myEmbed:
     def embed_subject( self, embed, courses:list ):
     
         desc = f"\n**Listing {len(courses)} courses:\n**"
-
         embed.description = desc
 
+        chunk = ""
+        chunks = []
         for coursename in courses:
 
-            words = coursename.split()
-            desc += f"• {words[0]} {words[1]}\n"
+            line = f"• {coursename}\n"
 
+            if len(chunk) + len( line ) <= 1024:
+
+                # words = coursename.split()
+
+                # line = f"• {words[0]} {words[1]}\n"
+                chunk += line
+            
+            else:
+
+                embed.add_field( name="a", value=chunk)
+                chunks.append( line )
+                chunk = line
+
+            #desc += f"• {words[0]} {words[1]} - {coursename}\n"
+        
+        embed.add_field( name="a", value=chunk)
+        print( len( chunks ) )
         # while index < len( courses ):
             
         #     # empty chunk
@@ -168,10 +185,6 @@ class myEmbed:
         #         chunk = ""
             
         #     embed.add_field( name="hiiix2", value=chunk)
-
-        desc += f'''\n**Suggested Commands**
-                    {PREFIX}lookup <XXX000> <SEASON> <YEAR>
-                    {PREFIX}grades <XXX000> <SEASON> <YEAR>'''
         
         embed.description = desc
 
