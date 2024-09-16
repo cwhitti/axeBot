@@ -24,12 +24,39 @@ class GradeHandler:
     '''
     PUBLIC FUNCTIONS
     '''    
-    def grades( self, embed:myEmbed, search:Search ):
+    def grades( self, embed:myEmbed, search:Search ) -> bool: 
 
-        # initialize list for courses
-        courses = []
+        # init variables
+        courses = []        # initialize list for courses
+        tries = 0
 
-        if not self._grades( search, courses ):
+        # begin the first lookup
+        success = self._grades( search, courses)
+
+        # begin trying to get grades
+        while (tries < self.max_tries) and success != True:
+
+            # clear course list
+            courses.clear()
+
+            # increase try count
+            tries += 1
+
+            # decrease szn and year
+            search.szn, search.year, search.term = search.decrease_term()
+
+            # descrease term
+
+            # next lookup
+            success = self._grades( search, courses )
+
+
+        # check if we found something
+        if success == True:
+
+            self.embedHandler.embed_grades( embed, search, courses )
+
+        else:
 
             new_szn, new_yr = search.decrease_term()
 
@@ -45,7 +72,7 @@ class GradeHandler:
                 👉 **No Records**: Public records not yet available, or class does not exist.
 
                 👉 **Off-season**: Some classes are Spring/Fall only. Try searching for another semester.
-                
+
                 👉 **Nonexistant Class**: There is no class with this code
 
                 ** Suggested Commands**
@@ -55,26 +82,17 @@ class GradeHandler:
                 ''',
                 inline=False)
 
-            return False
-
-        self.embedHandler.embed_grades( embed, search, courses )
-        # embed.add_field(name="", value= f'''
-        #                 **Term**
-        #                 {search.szn} {search.year}
-
-        #                 **What happened?**
-        #                 There are no public grades available for {search.sub} {search.nbr}.''')
-
-        return True
+        return success
         
     
-    def __init__(self) -> None:
+    def __init__(self, max_tries) -> None:
         self.course = None
         self.search = None
+        self.max_tries = max_tries
 
         self.embedHandler = myEmbed()
 
-    def _find_classes( self, soup, classCode, courses ):
+    def _find_classes( self, soup, classCode, courses ) -> bool:
         entries = []
         info = soup.find_all('td', string=classCode)
 
@@ -145,7 +163,7 @@ class GradeHandler:
 
         return BeautifulSoup(resp.content, 'html.parser')
     
-    def _grades(self, search:Search, courses:list ):
+    def _grades(self, search:Search, courses:list )  -> bool:
 
         # declare variables
         term = search.term
@@ -153,6 +171,8 @@ class GradeHandler:
         classNbr = search.nbr
         endLetter = search.ending
         classCode = classSub + " " + classNbr + endLetter
+
+        #print(f"Now searching: {classCode} in {search.szn} {search.year}")
 
         # Send GET request to get initial page
         session = self._get_legacy_session()
@@ -164,6 +184,8 @@ class GradeHandler:
         if not self._resp_200( response ):
             # print("This is bad")
             return False
+        
+        #print("We got here 1")
         
         #print( response )
         
@@ -183,26 +205,36 @@ class GradeHandler:
         if response == None:
             return False
         
+        #print("We got here 2")
+        
         if not self._resp_200( response ):
             return False
         
-        soup = self._get_soup( response )
+        #print("We got here 3")
         
-        #print(f"Soup 2= {soup}\n\n\n")
+        soup = self._get_soup( response )
+
+        #print(soup)
 
         response = self._post_nbr( session, soup, term, classSub, search, courses )
-        
-              # weird recursion thing, since post_nbr works by recursively returning _grades if
-        # we need to decrease the term. So at some point, 'response' becomes True.
-        # That means our grades went through successfully, so it would be redundant
-        # to send another.
-        # This is super gross I'm sorry
+
+        if response == None:
+            return False
+    
+
 
         #print( type(response) )
 
-        if response == True or response == False:
-            return response
-        
+        # if response == True or response == False:
+
+        #     # weird recursion thing, since post_nbr works by recursively returning _grades if
+        #     # we need to decrease the term. So at some point, 'response' becomes True.
+        #     # That means our grades went through successfully, so it would be redundant
+        #     # to send another.
+        #     # This is super gross I'm sorry
+        #     return response
+    
+
         if not self._resp_200( response ):
             return False
     
@@ -211,7 +243,7 @@ class GradeHandler:
         return self._find_classes( soup, classCode, courses )
 
 
-    def _resp_200( self, resp ):
+    def _resp_200( self, resp ) -> bool:
         return resp.status_code == 200
      
     def _post_nbr( self, session, soup, term, classSub, search:Search, course:Course):
@@ -228,17 +260,26 @@ class GradeHandler:
             #print(f"event validation: {event_validation}")
 
         # recursively go backwards so we can find the grade
+
+        # NO DONT DO RECURSION HERE!!!!!!
         except AttributeError:
 
-            #print(f"NOTHING FOUND FOR {search.szn} {search.year}")
-            search.szn, search.year = search.decrease_term( )
-            #print(f" --> NOW SEARCHING {search.szn} {search.year}")
+            #print("We got here 3.1")
 
-            search.term = search.calculate_term( search.szn, search.year )
+            
 
-            # should this return the bool? probably not
-            return self._grades( search, course )
+            print(f"NOTHING FOUND FOR {search.szn} {search.year}")
+            # search.szn, search.year = search.decrease_term( )
+            # print(f" --> NOW SEARCHING {search.szn} {search.year}")
 
+            # search.term = search.calculate_term( search.szn, search.year )
+
+            # # should this return the bool? probably not
+            # return self._grades( search, course )
+
+            return None
+
+            
         if (event_validation != None):
 
             # Prepare the payload with updated form data and the extracted values
@@ -252,11 +293,12 @@ class GradeHandler:
 
             response = session.post(url, data=payload)
 
-            # print(f"THIS SHOULD BE 200: {response}")
+            #print(f"THIS SHOULD BE 200: {response}")
 
             if self._resp_200( response ):
                 return response
-            
+        
+        # we messed up?
         print(" Something went wrong again")
         return None
     

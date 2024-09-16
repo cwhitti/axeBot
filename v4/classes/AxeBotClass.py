@@ -463,6 +463,8 @@ class AxeBot:
 
         self.embedHandler.embed_subject( embed, courses )
 
+        embed.set_footer(text=f"Based on {search.szn.capitalize()} {search.year} catalogue")
+
         return True
 
     '''
@@ -502,12 +504,14 @@ class AxeBot:
         self.owner        = config.OWNER
         self.dft_color    = config.DFT_COLOR
         self.log_file     = config.LOG_FILE
+        self.max_tries    = config.MAX_TRIES
         self.subjects     = subjectAbrvs.name_list
+        
         
         # intialize objects
         self.embedHandler = myEmbed()
         self.webHandler   = WebHandler()
-        self.gradeHandler = GradeHandler()
+        self.gradeHandler = GradeHandler( self.max_tries )
 
         # commands
         self.cmd_dict = {
@@ -537,7 +541,7 @@ class AxeBot:
                         self.prefix + "list":(
                                                 self.subj_search,
                                                 f''' Look up all classes under a subject
-                                                ➡ _Example: {self.prefix}list eng_
+                                                ➡ _Example: {self.prefix}list eng
                                                 ➡ _Example: {self.prefix}list MAT summer 2020_
                                                 ➡ _Format: {self.prefix}list <SUBJECT> <season> <year>_\n''',
                                                 False
