@@ -4,6 +4,7 @@ import os
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
+from config import PIE_CHART_FILE as FILENAME
 
 SEPERATE = 0
 
@@ -54,75 +55,46 @@ class ChartHandler():
         # Save the combined image
         combined_image.save(output_file)
 
-    def create_figure(self, name, search, courses:list):
+    def create_figure(self, searchInfo, records):
 
-        profs = {}
-        imgs = []
+        # initialize variables
+        class_dict = {}
 
-        # check if pass/fail
-        if (courses[0].grades["P"] != '0' ):
+        # check if records are pass/fail
+        if (records[0].P == '0' ):
             
+            type = "PASS/FAIL"
             labels = [ "P", "F"]
 
         # not pass/fail
         else:
+            type = "FULL"
             labels = ['A', 'B', 'C', 'D', 'F']
         
-
-        # seperate course by teacher, doesnt work very well atm
-        if SEPERATE == 1:
-
-            for course in courses:
-
-                prof = course.prof
-
-                if prof not in profs:
-                    profs[ prof ] = []
-
-                profs[ prof ].append( course )
-
-            # seperate graphs by prof
-            for prof, courses in profs.items():
-
-                class_dict = {}
-
-                # seperate profs by course
-                for course in courses:  
-
-                    class_dict[ f"Sect. {course.section}" ] = [ int(course.grades[label]) for label in labels ]
-
-                fig, ax = self.survey(class_dict, labels, prof )
-                filename = f"{prof}_{course.name}.png"
-                fig.savefig(filename)
-                # imgs.append(filename)
-
-            self.combine_images( imgs, name )
-
-        else:
+        # Run though all courses
+        for course in records:
             
-            class_dict = {}
+            # add to the dictionary
+            if type == "PASS/FAIL":
+                class_dict[ f"Sect. {course.section}" ] = [
+                                                            int(course.P),
+                                                            int(course.F)
+                                                            ]
+            # add to the dictionary
+            else:
+                class_dict[ f"Sect. {course.section}" ] = [
+                                                            int(course.A),
+                                                            int(course.B),
+                                                            int(course.C),
+                                                            int(course.D),
+                                                            int(course.F)
+                ]
+            #class_dict[ f"Sect. {course.section}" ] = [ int(course.grades[label]) for label in labels ]
 
-            for course in courses:
+        fig, ax = self.survey(class_dict, labels, f"Grade Distribution for {searchInfo.search_code} ({searchInfo.calculate_year_and_season( course.term )}) " )
+        fig.savefig( FILENAME )
 
-                # seperate profs by course
-                for course in courses:  
-
-                    class_dict[ f"Sect. {course.section}" ] = [ int(course.grades[label]) for label in labels ]
-
-            fig, ax = self.survey(class_dict, labels, f"Grade Distribution for {course.name} ({search.szn.capitalize()} {search.year}) " )
-            fig.savefig(name)
-
-        #delete_folder( "imgs")
-
-        return True
-
-
-    def delete_folder(folder_path):
-        if os.path.exists(folder_path):
-            shutil.rmtree(folder_path)
-            print(f"Folder '{folder_path}' has been deleted.")
-        else:
-            print(f"Folder '{folder_path}' does not exist.")
+        return FILENAME
 
     def survey(self, results, category_names, title=""):
         """

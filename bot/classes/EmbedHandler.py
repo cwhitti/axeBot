@@ -1,3 +1,4 @@
+import os
 import json
 import discord
 import config as cfg
@@ -15,9 +16,10 @@ class EmbedHandler ( ):
             self.channel_name = channel_name
             self.channel_obj = None
             self.guild = None
-            self.file = None
+            self.file_obj = None
+            self.reply_to = None
 
-        def set_channel_obj( self, msg_channel:discord.channel):
+        def set_channel_obj( self, msg_channel:discord.channel ):
         
             # check if embed can be sent anywhere
             if self.channel_name == "" and msg_channel != None:
@@ -29,8 +31,21 @@ class EmbedHandler ( ):
             else:
                 self.channel_obj = self.guild.get_channel_obj( self.channel_name )
 
-        def set_file( self, file):
-            self.file
+        def set_file(self, filepath: str):
+            """
+            Embeds an image into the embed from the given file path.
+
+            Parameters:
+            - filepath (str): The path to the image file.
+
+            Returns:
+            - discord.File: The file object to be sent with the embed.
+            """
+            file = discord.File(filepath, filename=filepath.split("/")[-1])
+            self.set_image(url=f"attachment://{file.filename}")
+            
+            self.file_obj = file
+
 
         def set_guild(self, guild):
             self.guild = self.guildHandler.new_guild( guild )
@@ -47,18 +62,35 @@ class EmbedHandler ( ):
 
                 # Send the embed
                 async with self.channel_obj.typing():
+                    
+                    # See if we need to reply to someone
+                    if self.reply_to != None:
 
-                    if self.file:
-                        await self.channel_obj.send(embed=self, file=self.file)
-                    else:
-                        await self.channel_obj.send(embed=self)
+                        # reply to the message with file
+                        if self.file_obj != None:
+                            await self.reply_to.reply(embed=self, file=self.file_obj)
+                        
+                        # reply to the message WITHOUT file
+                        else:
+                            await self.reply_to.reply(embed=self)
+                    
+                    #else, simply send the message
+                    else:                        
+                        # send embed with file
+                        if self.file_obj != None:
+                            await self.channel_obj.send(embed=self, file=self.file_obj)
+                        
+                        # send embed WITHOUT file
+                        else:
+                            await self.channel_obj.send(embed=self)
+
             else:
                 raise ValueError(f"Embed '{self.title}' needs a channel in order to be sent!.")
 
     # init
-    def __init__(self):
+    def __init__(self, guildHandler ):
 
-        self.guildHandler = GuildHandler()
+        self.guildHandler = guildHandler
 
         self._json_file = cfg.json_file
 
@@ -73,7 +105,7 @@ class EmbedHandler ( ):
         with open(self._json_file, 'r') as embed_file:
             self.messages = json.load(embed_file)
 
-    async def get_embed(self, key, **kwargs):
+    async def get_embed(self, key, reply_to:discord.Message=None, **kwargs):
 
         # get embed format
         data = self._get_embed_format( key )
@@ -86,10 +118,15 @@ class EmbedHandler ( ):
             title=data.get("title").format(**kwargs),             # format the title w args
             description=data.get("description").format(**kwargs), # format the body w args
             color=self._color_map[(data.get("color"))],           # Get the hex color
-            channel_name = channel_name,                           # set destination channel
+            channel_name = channel_name,                          # set destination channel
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),             
             guildHandler=self.guildHandler
         )
+
+        if reply_to != None:
+            embed.reply_to = reply_to
+
+        embed.set_footer(text=data.get("footer").format(**kwargs))
 
         # return the embed
         return embed

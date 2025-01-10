@@ -20,14 +20,12 @@ def run_discord_bot():
     # initialize bot
     bot = Bot(name, client, prefix, dft_color, token)
 
-    bot.get_highest_term()
-
-    quit()
     # Task loop to update data periodically
     @tasks.loop(hours=cfg.HOURS_UPDATE)  
     async def passive_update_database():
-        # await bot.update_database() 
-        # await embed.send()
+        # bot.ready = False
+        # await bot.web_update()
+        # bot.ready = True
         pass
 
     @client.event

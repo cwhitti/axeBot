@@ -1,4 +1,3 @@
-from secret import url
 from classes.NAUHandler import NAUHandler
 from classes.SoupHandler import SoupHandler
 from classes.LegacyHttpHandler import LegacyHttpHandler
@@ -14,52 +13,50 @@ class MyWebHandler( LegacyHttpHandler, NAUHandler, SoupHandler ):
         self.session = None
         self.saved_soup = None
 
-    def retrieve_id(self, subject, nbr, term, ending):
+        self.catalog_url = "https://catalog.nau.edu/Courses/" 
+        self.grades_url =  "https://www7.nau.edu/pair/reports/ClassDistribution"
 
-        response = self.get_nau_catalog( subject, nbr, term, ending )
-
-        soup = self.get_soup(response)
-
-        return self.get_course_id(soup, subject, nbr, ending)
     
-    def get_nau_catalog( self, subject, nbr, term, ending):
+    def get_single_course_catalog( self, subject, term, nbr, ending):
+
+        # https://catalog.nau.edu/Courses/results?subject=ENG&catNbr=305&term=1247
+        pass
+
+    def get_nau_catalog( self, subject, term):
 
         # declare variables 
-
-        # Create link #1
-            # https://catalog.nau.edu/Courses/results?subject=ENG&catNbr=305&term=1247
-            # Need: subject, nbr, term
-        url = f"https://catalog.nau.edu/Courses/results?subject={subject}&catNbr={nbr}{ending}&term={term}"
+            # https://catalog.nau.edu/Courses/results?subject=MAT&catNbr=&term=1254
+        url = self.catalog_url + f"results?subject={subject}&catNbr=&term={term}"
 
         # REQUEST LINK CONTENTS
         resp = self.session.get( url )
 
-        print(url)
+        # return thge soup
+        soup = self.get_soup( resp )
 
-        return resp
+        return soup
 
-        # # check if request was valid
-        # if code != 200 or resp == None:
-        #     embed.description = "Yikes, something odd happened. Contact the bot owner if you see this."
-        #     return False
+    def get_latest_term(self, soup_type ):
+
+        if soup_type == "Catalog":
+            url = self.catalog_url
         
-        # # pull its course ID
-        # course.courseID = self.webHandler.scrape_course_id( resp, search.sub, 
-        #                                                             search.nbr, 
-        #                                                                 search.ending )
-        
-        # # Course was not found
-        # if course.courseID == None:
-        #     embed.description = "This class does not exist."
-        #     return False
+        elif soup_type == "Grades":
+            url = self.grades_url
 
-    def get_subjects( self, term ):
+        response = self.session.get( url )
+
+        soup = self.get_soup( response )
+
+        return self.get_latest_term_from_soup( soup, soup_type )
+
+    def get_subjects_from_grades( self, term ):
 
         # initalize variables
             # None
 
         # Send POST to original URL
-        response = self.session.post( url )
+        response = self.session.post( self.grades_url )
         
         # fail out if bad page
         if not self.resp_200( response ):
@@ -84,6 +81,25 @@ class MyWebHandler( LegacyHttpHandler, NAUHandler, SoupHandler ):
         # return the extracted codes
         return self.extract_sub_codes( soup )
     
+    def get_subjects( self, term ):
+        '''
+        Searches the NAU grades catalog for the semester prior
+        '''
+        # if soup_type == "Catalog" or "Grades":
+        #     term = self.decrease_term( term )
+        #     url = self.catalog_url
+
+        # response = self.session.get( url )
+
+        # soup = self.get_soup( response )
+
+        subjects = self.get_subjects_from_grades( term )
+
+        if len(subjects) == 0:
+            return self.get_subjects( self.decrease_term( term ) )
+
+        return subjects
+
     def open_session( self ):
         self.session = self.get_legacy_session()
     
@@ -100,7 +116,7 @@ class MyWebHandler( LegacyHttpHandler, NAUHandler, SoupHandler ):
         }
 
         # send the payload
-        response = session.post(url, data=payload)
+        response = session.post( self.grades_url, data=payload)
 
         self.saved_soup = self.get_soup( response )
 
@@ -145,7 +161,7 @@ class MyWebHandler( LegacyHttpHandler, NAUHandler, SoupHandler ):
                 "ctl00$MainContent$Button1": "Submit"
             }
 
-            response = self.session.post(url, data=payload)
+            response = self.session.post( self.grades_url, data=payload)
 
             if self.resp_200( response ):
                 return response

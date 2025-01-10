@@ -4,13 +4,13 @@ from sqlmodel import SQLModel, Field, create_engine, Session, Relationship, sele
 
 class SQLHandler:
 
-    def __init__(self, db_path, dbg=False) -> None:
+    def __init__(self, db_path, reset_db=False) -> None:
         self.engine = create_engine(f"sqlite:///{db_path}")
-        self.dbg = dbg
+        self.reset = reset_db
 
-        # if self.dbg:
-        #     SQLModel.metadata.drop_all(self.engine)
-        #     SQLModel.metadata.create_all(self.engine)
+        if self.reset:
+            SQLModel.metadata.drop_all(self.engine)
+            SQLModel.metadata.create_all(self.engine)
 
     def check_exists(self, model: Type[SQLModel], filters: dict) -> bool:
         """
@@ -196,24 +196,7 @@ class Section(SQLModel, table=True):
     course: Optional[Course] = Relationship(back_populates="sections")
 
 def _main():
-    handler = SQLHandler(db_path="othertest.db", dbg=True)
-
-    # Insert a course
-    course = Course(id="MAT210", term=1234, season="Fall", year=2024, sub="CIS", nbr="310", search_code="CIS310")
-    handler.insert(course)
-
-    # Insert sections
-    sections = [
-        Section(id="MAT210", section="001", instructor="Dr. Smith", A=10, B=15, Total=30),
-        Section(id="MAT210", section="002", instructor="Dr. Reynolds", A=15, B=12, Total=33),
-    ]
-    for sec in sections:
-        handler.insert(sec)
-
-    # Retrieve sections for a course
-    sections = handler.retrieve(Section, filters={"id": "MAT210"}, join_course=True)
-    for sec in sections:
-        print((f"Section: {sec.section}, Instructor: {sec.instructor}, Course Term: {sec.course.term}"))
+    handler = SQLHandler(db_path="database/othertest.db", reset=True)
 
 if __name__ == "__main__":
     _main()

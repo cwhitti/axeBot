@@ -11,6 +11,7 @@ json_file = "json/embeds.json"
 
 # path to the database
 db_path = "database/NAUCourses.db"
+PIE_CHART_FILE = "images/grades.jpg"
 
 # colors
 dft_color     = 0x6495ED # hex

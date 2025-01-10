@@ -5,7 +5,7 @@ class SoupHandler():
 
     def __init__(self) -> None:
         pass
-
+    
     def extract_sub_codes( self, soup ):
         """
         Extracts the subject codes from the <option> elements of the select element with id 'MainContent_SubjectList'.
@@ -36,17 +36,13 @@ class SoupHandler():
                 class_to_course_id[class_code] = course_id
 
         return class_to_course_id
+    
     def get_course_id( self, soup, sub, nbr, ending ):
 
-        # print(f"LOOKING FOR {sub} {nbr}{ending}")
-        # print(soup)
 
         # define variables
         course_id = None
         stri = f"{sub} {nbr}{ending}" + " " # the space is important 
-        #print( f"\t{sub}+{nbr}+{ending}")
-        
-        #print(stri)
 
         # Extract all <tr> elements
         links = soup.find_all('a')
@@ -149,6 +145,40 @@ class SoupHandler():
 
         return course_prerequisites
     
-    def get_soup( self, resp ):
+    def get_subjects_from_soup( self, soup, soup_type ):
 
+        if soup_type == "Catalog":
+            pass
+        elif soup_type == "Grades":
+            pass
+
+    def get_latest_term_from_soup(self, soup, soup_type):
+        """
+        Extracts the latest semester term's value based on the soup type.
+
+        Parameters:
+            soup (BeautifulSoup): Parsed HTML content.
+            soup_type (str): Type of the soup, either "Catalog" or "Grades".
+
+        Returns:
+            str: The latest term value if found, None otherwise.
+        """
+        latest_term = None
+        term_select = None
+
+        # Determine the select element based on the soup type
+        if soup_type == "Catalog":
+            term_select = soup.find('select', {'name': 'term'})
+        elif soup_type == "Grades":
+            term_select = soup.find('select', {'id': 'MainContent_TermList'})
+
+        # Extract the latest term value if the select element is found
+        if term_select:
+            options = term_select.find_all('option')
+            if options:
+                latest_term = options[1]['value'] if soup_type == "Grades" else options[0]['value']
+
+        return latest_term
+
+    def get_soup( self, resp ):
         return BeautifulSoup(resp.content, 'html.parser')

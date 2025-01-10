@@ -14,7 +14,9 @@
                 "title": "Discord embed title",
                 "description": "Discord embed description",
                 "color": "Discord embed color",
-                "channel": "Channel for embed to be sent in"
+                "channel": "Channel for embed to be sent in",
+                "footer": "Footer for the embed",
+                "image": "Image for the embed, if any."
             },
 
             "#valid-channels":{ 
@@ -32,48 +34,135 @@
         "title": "",
         "description": "",
         "color": "",
-        "channel": ""
+        "channel": "",
+        "footer":"",
+        "image":""
     },
+
+    "all-sections":{
+        "title": "{search_code}: All Sections",
+        "description": "{desc}",
+        "color": "DEFAULT",
+        "channel": "",
+        "footer":"",
+        "image":""
+    },
+
     "bot-not-ready":{
         "title": "Bot Setting Up",
         "description":"Sorry, {mention}. This bot is still in the process of setting up. Try again in a few minutes",
         "color": "DEFAULT",
-        "channel": ""
+        "channel": "",
+        "footer":"",
+        "image":""
     },
 
     "bot-start":{
         "title": "Started Bot",
         "description":"",
         "color": "DEFAULT",
-        "channel": "general"
+        "channel": "general",
+        "footer":"",
+        "image":""
+    },
+    "course-not-found":{
+        "title": "Course Not found",
+        "description":"Sorry, this course does not exist within the database. Please try again.",
+        "color": "DEFAULT",
+        "channel": "general",
+        "footer":"",
+        "image":""
+    },
+
+    "current-terms":{
+        "title": "Current Terms",
+        "description":"The most current grades within the database are from the **{grades_season} {grades_year}** semester. However, general information for all classes is available for lookup from the **{course_season} {course_year}** semester.\n\n**Nerd Stuff**\nWeb Course Term: {ct}\nWeb Grades Term: {gt}\nDatabase Course Term: {lct}\nDatabase Grades Term: {lgt}",
+        "color": "DEFAULT",
+        "channel": "general",
+        "footer":"",
+        "image":""
+    },
+
+    "custom-query":{
+        "title": "Query results",
+        "description":"{desc}",
+        "color": "DEFAULT",
+        "channel": "",
+        "footer":"",
+        "image":""
+    },
+
+    "grades": {
+        "title": "{search_code} Grade Distribution",
+        "description":"{desc}",
+        "color": "DEFAULT",
+        "channel": "",
+        "footer":"Based on the {season} {year} catalog",
+        "image":""
+    },
+
+    "grades-available-past":{
+        "title": "{search_code}: Past Semesters Found",
+        "description":"{desc}",
+        "color": "DEFAULT",
+        "channel": "",
+        "footer":"",
+        "image":""
+
+    },
+
+    "grades-unavailable-past":{
+        "title": "{search_code}: No Semesters Found",
+        "description":"Sorry, there is no public grade data for this course. To protect student privacy, grade distributions are not available for undergraduate classes with **fewer than ten students** enrolled or for graduate classes with **fewer than five students** enrolled.",
+        "color": "DEFAULT",
+        "channel": "",
+        "footer":"",
+        "image":""
     },
 
     "hello":{
         "title": "Oh, hi!",
         "description":"Good to see you! You can get started with {prefix}help to see my commands.",
         "color": "SUCCESS",
-        "channel": ""
+        "channel": "",
+        "footer":"",
+        "image":""
     },
 
     "help":{
         "title": "Help Commands",
         "description": "{desc}",
         "color": "DEFAULT",
-        "channel": ""
+        "channel": "",
+        "footer":"",
+        "image":""
     },
 
     "invalid-command":{
         "title": "Invalid Command",
         "description": "Unknown command. Find a list of commands with {prefix}help.",
         "color": "FAILURE",
-        "channel": ""
+        "channel": "",
+        "footer":"",
+        "image":""
+    },
+
+    "invalid-command-grades":{
+        "title": "Bad Grade Search",
+        "description": "Sorry, the bot was unable to process your command. Please try again.\n\n**Usage**: {prefix}grades <SUBJECT> <NUMBER> <optional: SEASON> <optional: YEAR>\n**Example**:{prefix}grades cs249",
+        "color": "FAILURE",
+        "channel": "",
+        "footer":"",
+        "image":""
     },
 
     "unauthorized-user":{
         "title": "Unauthorized User",
         "description": "Sorry {mention}, you are not authorized to use this command.",
         "color": "FAILURE",
-        "channel": ""
+        "channel": "",
+        "footer":"",
+        "image":""
             
     },
 
@@ -81,20 +170,26 @@
         "title": "Database Failire",
         "description": "Unable to update the database: {e}",
         "color": "FAILURE",
-        "channel": "general"
+        "channel": "general",
+        "footer":"",
+        "image":""
     },
     
     "update-database-success":{
         "title": "Updated Database",
         "description": "Database has been successfully updated.\n\n**Summary**\n- {summary}",
         "color": "SUCCESS",
-        "channel": "general"
+        "channel": "general",
+        "footer":"",
+        "image":""
     },
 
     "update-database-begin":{
         "title": "Attempting Update",
         "description": "Trying to update to {end_term}",
         "color": "DEFAULT",
-        "channel": ""
+        "channel": "",
+        "footer":"",
+        "image":""
     }
 }

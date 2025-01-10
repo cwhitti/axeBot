@@ -1,30 +1,53 @@
 import re
+import json
 import secret as sc
 import config as cfg
+from datetime import datetime
+import classes.scripts.embeds as format
 from classes.NAUHandler import NAUHandler
+from classes.ChartHandler import ChartHandler
 from classes.EmbedHandler import EmbedHandler 
 # from classes.GuildHandler import GuildHandler
 from classes.DatabaseHandler import DatabaseHandler
 
 
-class Bot( EmbedHandler, DatabaseHandler ):
+class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
 
     '''
     CUSTOM CLASSES 
     '''
-    class SearchInfo():
+    class SearchInfo( NAUHandler ):
 
-        def __init__(self, msg, season, year, term, subject, nbr, ending) -> None:
+        def __init__(self, msg=None, season=None, year=None, 
+                                subject=None, nbr=None, ending=None) -> None:
+            
+            # initialize NAU Handler
+            NAUHandler.__init__( self )
 
+            # initialize variables
             self.msg = msg
-            self.season = season.capitalize()
+            self.season = season
             self.year = year
-            self.term = term
             self.subject = subject
             self.nbr = nbr
             self.ending = ending
 
+            # ensure season is in proper format
+            if self.season != None:
+                self.season = self.season.lower().capitalize()
+            
+            # calculated terms
+            self.term = None
             self.search_code = f"{subject} {nbr}{ending}"
+
+            # set up term
+            self.setup()
+            
+        def construct_url( self, course_id ):
+        
+            url = f"https://catalog.nau.edu/Courses/"
+
+            return url + f"course?courseId={course_id}&term={self.term}"
         
         def display( self ):
 
@@ -39,13 +62,20 @@ class Bot( EmbedHandler, DatabaseHandler ):
                 Term: { self.term }
                 ''')
             
-        def construct_url( self, course_id ):
-        
-            url = f"https://catalog.nau.edu/Courses/"
-
-            return url + f"course?courseId={course_id}&term={self.term}"
-
+        # def validate( self ):
             
+        #     assert ( self.msg != None )
+            
+        def setup( self ):
+            
+            # ensure we always have a season, year, and term
+            if self.season == None or self.year == None:
+                self.term = self.calculate_current_term()
+                self.season, self.year = self.calculate_year_and_season( self.term  )
+            
+            # season and year were provided
+            else:
+                self.term = self.calculate_set_term( self.season, self.year )
 
     '''
     PUBLIC FUNCTIONS
@@ -69,7 +99,8 @@ class Bot( EmbedHandler, DatabaseHandler ):
             if author_id != self.owner and selected_option[2] == True:
 
                 embed = await self.get_embed("unauthorized-user", 
-                                            guild=msg.guild)
+                                            #guild=msg.guild
+                                            )
 
                 return embed # return early
 
@@ -79,16 +110,18 @@ class Bot( EmbedHandler, DatabaseHandler ):
         # Command not in the command dictionary
         else:  
             embed = await self.get_embed("invalid-command", 
-                                            guild=msg.guild,
-                                            prefix = self.prefix)
+                                            #guild=msg.guild,
+                                            prefix = self.prefix
+                                        )
 
         return embed
 
     async def hello(self, msg):
 
         embed = await self.get_embed("hello",
-                                guild=msg.guild,
-                                prefix = self.prefix)
+                                #guild=msg.guild,
+                                prefix = self.prefix
+                                )
 
         return embed
     
@@ -116,70 +149,171 @@ class Bot( EmbedHandler, DatabaseHandler ):
                 desc += f"**{trigger}**: {text}\n"
 
         return await self.get_embed("help", 
-                                    guild = msg.guild, 
-                                    desc = desc)
-    
+                                    #guild = msg.guild, 
+                                    desc = desc
+                                    )
     '''
     INTEGRAL AXEBOT COMMANDS
     '''
+    async def current( self, msg):
 
-    async def find( self, msg ):
+        self.open_session()
 
-        # initialize variables 
+        # Get the current year and season for grades
 
-        # Get parameters:
+        # Get most recent terms from nau
+            # function: self.calculate_current_term()
+        catalog_term = self.get_latest_term( "Catalog" )
+        grades_term  = self.get_latest_term( "Grades" )
 
-            # Subject
-            # Number
+        # Get most recent terms from my db
+        last_catalog_term = self.retrieve_highest_term( "Course" )
+        last_grades_term = self.retrieve_highest_term( "Section" )
+
+        # Get the current year and season for grades
+        course_season, course_year = self.calculate_year_and_season( last_catalog_term )
+        grades_season, grades_year = self.calculate_year_and_season( last_grades_term )
+
+        return await self.get_embed( "current-terms",
+                                    grades_season=grades_season,
+                                    grades_year=grades_year,
+                                    course_season=course_season,
+                                    course_year=course_year,
+                                    ct=catalog_term, 
+                                    gt=grades_term,
+                                    lct=last_catalog_term,
+                                    lgt=last_grades_term)
+
+    async def all_sections( self, msg, search_info=None ):
+
+        # initialize variables
+        if search_info == None:
+
+            # parse the message
+            search_info = self._parse_msg( msg )
+            
+            # Fail out if invalid grades search
+            if search_info == None:
+                return await self.get_embed( "invalid-command-grades",
+                                            reply_to=msg,
+                                            prefix=self.prefix
+                                        )
+            # not expecting anything so just set the 
+            search_info.term = self.retrieve_highest_term( "Section" )
+
+            # reset the season and year
+            search_info.season, search_info.year = self.calculate_year_and_season( search_info.term )
 
         # Search the database for every instance
+        id = self.retrieve_course_id( search_info.search_code, search_info.term )
 
-        # Create embed
+        # course id was found
+        if id != None:
 
-        # return embed
+            # grab grade records
+            records = self.retrieve_sections( id )
 
-        return None
+            # if records were found:
+            if len(records) > 0:
 
+                # embed past sections
+                desc = format.embed_past_sections( searchInfo=search_info, records=records )
 
-    async def grades( self, msg ):
-
-        # Get parameters:
-        searchInfo = self._parse_msg(msg)
-
-        # check if we need to modify term
-        if searchInfo.term == "":
-            searchInfo.term = self.get_highest_term()
-            searchInfo.season, searchInfo.year = self.calculate_year_and_season( searchInfo.term )
-
-        # Set Parameters 
-                # initialize variables 
-        course_filters = { "search_code":searchInfo.search_code, 
-                            "term":searchInfo.term
-        }  
-    
-        # Find course in database
-        courses = self.find_courses( course_filters ) 
-
-        # if there is a course:
-        if len( courses ) == 1:
+                # return formatted embed
+                return await self.get_embed("all-sections",
+                                            reply_to=msg,
+                                            search_code=search_info.search_code,
+                                            desc=desc)
             
-            # Get course id
-            id = courses[0].id
-
-            section_filters = {"id":id,
-                                "term":searchInfo.term
-            }   
-
-            # Create embed - 
-            sections = self.find_sections( section_filters )
-                                    
-            print(sections)
+            # Grades have never been available for this course
+            else:
+                return await self.get_embed( "grades-unavailable-past", 
+                                        reply_to=msg,
+                                        search_code=search_info.search_code
+                                        )
 
         # if there is not a course
         else:
+            return await self.get_embed( "course-not-found", 
+                                         reply_to=msg,
+                                         search_code=search_info.search_code     
+            )
+    async def grades( self, msg ):
+
+        # initialize variables
+        highest_term = self.retrieve_highest_term( "Section" )
+
+        # parse the message
+        search_info = self._parse_msg( msg )
+        
+        # Fail out if invalid grades search
+        if search_info == None:
+            return await self.get_embed( "invalid-command-grades",
+                                        reply_to=msg,
+                                        prefix=self.prefix
+                                        )
+        # trigger if search term is too low
+        if int( search_info.term ) < int( self.end_term):
+
+            return await self.get_embed("term-too-low",
+                                        reply_to=msg,)
+        
+        # trigger if search term is too high, but is the current term
+        if int( search_info.term ) > int( highest_term ):
+
+            # They are looking too far ahead, like Summer 2300
+            if not self.is_current_term( search_info.term ):
+
+                return await self.get_embed("term-too-high",
+                                            reply_to=msg,)
+
+            # No term provided; just set the term down to the most recent term in db
+            search_info.term = highest_term
+
+            # reset the season and year
+            search_info.season, search_info.year = self.calculate_year_and_season( highest_term )
+
+        search_info.display()
+
+        # grab the course id
+        id = self.retrieve_course_id( search_info.search_code, search_info.term )
+
+        # course id was found
+        if id != None:
+
+            # grab grade records
+            records = self.retrieve_sections( id, search_info.term )
+
+            # if records were found:
+            if len(records) > 0:
+
+                desc = format.embed_grades( records )
+
+                embed = await self.get_embed( "grades",
+                                            reply_to=msg,
+                                            search_code=search_info.search_code,
+                                            desc=desc,
+                                            season="SZN",
+                                            year="YEAR"
+                                            )
+                
+                # set the embed's file
+                embed.set_file ( self.create_figure( search_info, records ) )
+                return embed
+            
+            # A course ID exists for this, but no sections
+            else:
+                
+                # find all instances of this section
+                return await self.all_sections( msg, search_info=search_info )
+
+        # if there is not a course
+        else:
+            return await self.get_embed( "course-not-found", 
+                                         reply_to=msg,
+                            )
             
             # Recommend newest semester 
-            pass
 
         # return embed
         return None
@@ -197,35 +331,23 @@ class Bot( EmbedHandler, DatabaseHandler ):
     
         return None
         
+    # async def user_retrieve( self, msg ):
 
-    
-    async def update_database(self, msg=None):
+    #     # initialize variables
+    #     command_parts = msg.content.split(" ", 2)
+    #     model_str = command_parts[1].lower()  # Extracts 'section'
+    #     json_string = command_parts[2].upper()  # Extracts the JSON string
+    #     filters = json.loads(json_string)
 
-        # initialize variables
-            # None
+    #     # get the query
+    #     results = self.custom_query( model_str, filters )
+
+    #     print(results)
+
+    #     embed = await self.get_embed( "custom-query",
+    #                                  desc=results )
 
 
-        # if msg != None:
-        #     embed = await self.get_embed("update-database-begin",
-        #                          guild=msg.guild,
-        #                          end_term=self.end_term)
-        #     await embed.send( msg.guild, msg.channel)
-
-        # # try to update the db
-        # try: 
-        #     self.web_update()
-        #     self.ready = True
-            
-        # # Error in updating database
-        # except Exception as e:
-            
-        #     # Bot is not ready :(
-        #     self.ready = False
-
-        #     raise e
-
-        # get the summary
-        return None
 
     '''
     PRIVATE FUNCTIONS
@@ -253,10 +375,12 @@ class Bot( EmbedHandler, DatabaseHandler ):
 
         # initialize inherited classes
         NAUHandler.__init__( self )
+        ChartHandler.__init__( self )
         EmbedHandler.__init__( self )
         DatabaseHandler.__init__( self, 
                                  cfg.db_path, 
-                                 dbg=False,
+                                 dbg=True,
+                                 reset_db=True,
                                  )
 
         # initialize all available commands for users to call
@@ -269,6 +393,12 @@ class Bot( EmbedHandler, DatabaseHandler ):
                                                     "List of commands", # help desc
                                                     False, # is admin-only command
                             ),
+                            self.prefix + "all":(
+                                                    self.all_sections,
+                                                    "List all semesters that have publically viewable grades for a specified class",
+                                                    False
+
+                            ),
                             self.prefix + "grades":( self.grades,
                                                     "Find the grades for a class",
                                                     False
@@ -278,11 +408,21 @@ class Bot( EmbedHandler, DatabaseHandler ):
                                                     "Look up a class",
                                                     False
                             ),
-                            self.prefix + "update":(
-                                                self.update_database,
-                                                "Force-updates the database.",
-                                                True
+                            self.prefix + "current":(
+                                                    self.current,
+                                                    "List the current semester supported by this bot",
+                                                    False
                             ),
+                            # self.prefix + "retrieve":(
+                            #                         self.user_retrieve,
+                            #                         "Send a query to the database",
+                            #                         True
+                            # )
+                            # self.prefix + "update":(
+                            #                     self.update_database,
+                            #                     "Force-updates the database.",
+                            #                     True
+                            # ),
                         }
     def _is_admin(self, author):
         return author.id in self.admin_list
@@ -304,12 +444,12 @@ class Bot( EmbedHandler, DatabaseHandler ):
         # initialize variables
         argv = ( msg.content.lower() ).split()
         argc   = len( argv )
-        szn    = ""
-        year   = ""
-        sub    = "" # ex: "CS"
-        nbr    = "" # #ex: "249"
-        ending = "" # ex: "w"   
-        term   = "" # ex "1247"
+        szn    = None # ex" "Spring"
+        year   = None # ex: "2009"
+        sub    = None # ex: "CS"
+        nbr    = None # #ex: "249"
+        ending = None # ex: "w"   
+
 
         # make sure there are enough args
         if ( ( argc < 2 or argc > 5) ):
@@ -419,8 +559,5 @@ class Bot( EmbedHandler, DatabaseHandler ):
 
             szn = val3
             year = val4
-
-            if szn != "" and year != "":
-                term = self.calculate_set_term( szn, year )
-
-        return self.SearchInfo(msg, szn, year, term, sub, nbr, ending)
+        
+        return self.SearchInfo( msg, szn, year, sub, nbr, ending.upper() )
