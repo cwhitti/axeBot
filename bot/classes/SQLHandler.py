@@ -4,8 +4,9 @@ from sqlmodel import SQLModel, Field, create_engine, Session, Relationship, sele
 
 class SQLHandler:
 
-    def __init__(self, db_path, reset_db=False) -> None:
+    def __init__(self, db_path, dbg, reset_db=False) -> None:
         self.engine = create_engine(f"sqlite:///{db_path}")
+        self.dbg = dbg
         self.reset = reset_db
 
         if self.reset:

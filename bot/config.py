@@ -18,6 +18,10 @@ dft_color     = 0x6495ED # hex
 success_color = 0x21D375 # hex
 error_color   = 0xF95C52 # hex
 
+# bools
+dbg=True
+reset_db=False
+
 # lists
 admin_list=[owner]
 staff_list=admin_list + []

@@ -7,7 +7,7 @@ import classes.scripts.embeds as format
 from classes.NAUHandler import NAUHandler
 from classes.ChartHandler import ChartHandler
 from classes.EmbedHandler import EmbedHandler 
-# from classes.GuildHandler import GuildHandler
+from classes.GuildHandler import GuildHandler
 from classes.DatabaseHandler import DatabaseHandler
 
 
@@ -42,6 +42,7 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
 
             # set up term
             self.setup()
+            self.display()
             
         def construct_url( self, course_id ):
         
@@ -69,7 +70,7 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
         def setup( self ):
             
             # ensure we always have a season, year, and term
-            if self.season == None or self.year == None:
+            if self.season == "" or self.year == "":
                 self.term = self.calculate_current_term()
                 self.season, self.year = self.calculate_year_and_season( self.term  )
             
@@ -376,11 +377,12 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
         # initialize inherited classes
         NAUHandler.__init__( self )
         ChartHandler.__init__( self )
+        GuildHandler.__init__( self )
         EmbedHandler.__init__( self )
         DatabaseHandler.__init__( self, 
-                                 cfg.db_path, 
-                                 dbg=True,
-                                 reset_db=True,
+                                 db_path  = cfg.db_path, 
+                                 dbg      = cfg.dbg,
+                                 reset_db = cfg.reset_db,
                                  )
 
         # initialize all available commands for users to call
@@ -444,12 +446,11 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
         # initialize variables
         argv = ( msg.content.lower() ).split()
         argc   = len( argv )
-        szn    = None # ex" "Spring"
-        year   = None # ex: "2009"
-        sub    = None # ex: "CS"
-        nbr    = None # #ex: "249"
-        ending = None # ex: "w"   
-
+        szn    = "" # ex" "Spring"
+        year   = "" # ex: "2009"
+        sub    = "" # ex: "CS"
+        nbr    = "" # #ex: "249"
+        ending = "" # ex: "w"   
 
         # make sure there are enough args
         if ( ( argc < 2 or argc > 5) ):

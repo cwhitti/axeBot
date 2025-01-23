@@ -10,9 +10,8 @@ class EmbedHandler ( ):
 
     # Custom embed class
     class CustomEmbed( discord.Embed ):
-        def __init__(self, *, guildHandler, channel_name, **kwargs):
+        def __init__(self, *, channel_name, **kwargs):
             super().__init__(**kwargs)
-            self.guildHandler = guildHandler
             self.channel_name = channel_name
             self.channel_obj = None
             self.guild = None
@@ -48,7 +47,7 @@ class EmbedHandler ( ):
 
 
         def set_guild(self, guild):
-            self.guild = self.guildHandler.new_guild( guild )
+            self.guild = guild
 
         async def send(self, guild, msg_channel:discord.channel=None):
             """Sends the embed to the assigned channel."""
@@ -88,9 +87,7 @@ class EmbedHandler ( ):
                 raise ValueError(f"Embed '{self.title}' needs a channel in order to be sent!.")
 
     # init
-    def __init__(self, guildHandler ):
-
-        self.guildHandler = guildHandler
+    def __init__(self ):
 
         self._json_file = cfg.json_file
 
@@ -120,7 +117,6 @@ class EmbedHandler ( ):
             color=self._color_map[(data.get("color"))],           # Get the hex color
             channel_name = channel_name,                          # set destination channel
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),             
-            guildHandler=self.guildHandler
         )
 
         if reply_to != None:

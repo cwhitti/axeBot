@@ -13,7 +13,7 @@ class DatabaseHandler( MyWebHandler, SQLHandler ):
 
 
         # Initialize inherited classes
-        SQLHandler.__init__(self, self.db_path, self.dbg, reset_db)
+        SQLHandler.__init__(self, self.db_path, self.dbg, self.reset_db)
         MyWebHandler.__init__( self )
 
         # Other specific variables
