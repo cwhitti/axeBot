@@ -76,9 +76,9 @@
 
     "current-terms":{
         "title": "Current Terms",
-        "description":"The most current grades within the database are from the **{grades_season} {grades_year}** semester. However, general information for all classes is available for lookup from the **{course_season} {course_year}** semester.\n\n**Nerd Stuff**\nWeb Course Term: {ct}\nWeb Grades Term: {gt}\nDatabase Course Term: {lct}\nDatabase Grades Term: {lgt}",
+        "description":"The most current grades within the database are from the **{grades_season} {grades_year}** semester. However, general information for all classes is available for lookup from the **{course_season} {course_year}** semester.\n\n**Nerd Stuff**\nWeb Course Term: {ct}\nDatabase Course Term: {lct}\n\n\nWeb Grades Term: {gt}\nDatabase Grades Term: {lgt}",
         "color": "DEFAULT",
-        "channel": "general",
+        "channel": "",
         "footer":"",
         "image":""
     },
@@ -164,6 +164,33 @@
         "footer":"",
         "image":""
             
+    },
+
+    "unit-test-desc":{
+        "title": "Unit Test Summary",
+        "description": "**Passed**: {passed}\n**Failed**:{failed}\n```{desc}```",
+        "color": "DEFAULT",
+        "channel": "",
+        "footer":"",
+        "image":""
+    },
+
+    "unit-test-failure":{
+        "title": "Unit Test Failure - {context}",
+        "description": "e: {e}",
+        "color": "FAILURE",
+        "channel": "",
+        "footer":"",
+        "image":""
+    },
+
+    "unit-test-success":{
+        "title": "Unit Test Success - {context}",
+        "description": "",
+        "color": "SUCCESS",
+        "channel": "",
+        "footer":"",
+        "image":""
     },
 
     "update-database-failure":{

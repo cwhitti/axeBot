@@ -1,8 +1,9 @@
 import os
 import json
 import discord
-import config as cfg
 import datetime
+import config as cfg
+from discord.utils import get
 from classes.GuildHandler import GuildHandler
 
 # Overarching handler
@@ -10,27 +11,17 @@ class EmbedHandler ( ):
 
     # Custom embed class
     class CustomEmbed( discord.Embed ):
+
         def __init__(self, *, channel_name, **kwargs):
             super().__init__(**kwargs)
             self.channel_name = channel_name
             self.channel_obj = None
             self.guild = None
             self.file_obj = None
+            self.filepath = None
             self.reply_to = None
 
-        def set_channel_obj( self, msg_channel:discord.channel ):
-        
-            # check if embed can be sent anywhere
-            if self.channel_name == "" and msg_channel != None:
-
-                # set the channel obj
-                self.channel_obj = msg_channel
-            
-            # A channel has been named
-            else:
-                self.channel_obj = self.guild.get_channel_obj( self.channel_name )
-
-        def set_file(self, filepath: str):
+        def set_file(self, *, filepath: str=None):
             """
             Embeds an image into the embed from the given file path.
 
@@ -40,21 +31,27 @@ class EmbedHandler ( ):
             Returns:
             - discord.File: The file object to be sent with the embed.
             """
+
             file = discord.File(filepath, filename=filepath.split("/")[-1])
             self.set_image(url=f"attachment://{file.filename}")
             
             self.file_obj = file
+            self.filepath = filepath
 
 
         def set_guild(self, guild):
             self.guild = guild
 
-        async def send(self, guild, msg_channel:discord.channel=None):
+        def set_channel_obj( self ):
+            self.channel_obj = get(self.guild.channels, name=self.channel_name)
+
+
+        async def send( self, guild ):
             """Sends the embed to the assigned channel."""
 
             # Set embed parameters
             self.set_guild( guild )
-            self.set_channel_obj( msg_channel )
+            self.set_channel_obj( )
 
             # send the embed
             if self.channel_obj is not None:
@@ -102,13 +99,30 @@ class EmbedHandler ( ):
         with open(self._json_file, 'r') as embed_file:
             self.messages = json.load(embed_file)
 
-    async def get_embed(self, key, reply_to:discord.Message=None, **kwargs):
+    def get_embed(self, key, reply_to = None, **kwargs):
 
         # get embed format
         data = self._get_embed_format( key )
 
-        # retrieve channel name 
-        channel_name = data.get("channel")
+        # set channel
+        if "channel" in kwargs.keys():
+            channel_name = kwargs["channel"]
+
+        # set reply_to
+        elif reply_to != None:
+            channel_name = reply_to.channel.name
+
+        else:
+            # retrieve channel name 
+            channel_name = data.get("channel")
+
+        # handle setting channel name if not supplied
+        if channel_name == "":
+            if reply_to is not None:
+                channel_name = reply_to.channel.name
+
+            if channel_name == "":
+                raise ValueError("ERROR: get_embed must specify which channel embed needs to be sent to.")
 
         # create embed with channel obj
         embed = EmbedHandler.CustomEmbed(
@@ -116,12 +130,14 @@ class EmbedHandler ( ):
             description=data.get("description").format(**kwargs), # format the body w args
             color=self._color_map[(data.get("color"))],           # Get the hex color
             channel_name = channel_name,                          # set destination channel
-            timestamp=datetime.datetime.now(tz=datetime.timezone.utc),             
+            timestamp=datetime.datetime.now(tz=datetime.timezone.utc), # set timestamp    
         )
 
+        # set reply_to
         if reply_to != None:
             embed.reply_to = reply_to
 
+        # set footer
         embed.set_footer(text=data.get("footer").format(**kwargs))
 
         # return the embed
@@ -135,7 +151,4 @@ class EmbedHandler ( ):
             raise ValueError(f"Embed key '{key}' not found in configuration.")
         
         return data
-    
-    def set_guild(self, guild):
-        self.guild = guild
 

@@ -11,7 +11,6 @@ class DatabaseHandler( MyWebHandler, SQLHandler ):
         self.dbg = dbg
         self.reset_db = reset_db
 
-
         # Initialize inherited classes
         SQLHandler.__init__(self, self.db_path, self.dbg, self.reset_db)
         MyWebHandler.__init__( self )
@@ -365,5 +364,3 @@ class DatabaseHandler( MyWebHandler, SQLHandler ):
         if int( grades_term ) > int( last_grades_term ):
             # add the grades
             self.add_sections( grades_term )  
-
-        print("Finished updating database")  

@@ -7,9 +7,9 @@ import classes.scripts.embeds as format
 from classes.NAUHandler import NAUHandler
 from classes.ChartHandler import ChartHandler
 from classes.EmbedHandler import EmbedHandler 
+from classes.MockDiscord import MockDiscordMsg
 from classes.GuildHandler import GuildHandler
 from classes.DatabaseHandler import DatabaseHandler
-
 
 class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
 
@@ -99,8 +99,8 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
             # Ensure permissions, currently owner-only
             if author_id != self.owner and selected_option[2] == True:
 
-                embed = await self.get_embed("unauthorized-user", 
-                                            #guild=msg.guild
+                embed = self.get_embed("unauthorized-user", 
+                                            reply_to=msg
                                             )
 
                 return embed # return early
@@ -110,8 +110,8 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
 
         # Command not in the command dictionary
         else:  
-            embed = await self.get_embed("invalid-command", 
-                                            #guild=msg.guild,
+            embed = self.get_embed("invalid-command", 
+                                            reply_to=msg,
                                             prefix = self.prefix
                                         )
 
@@ -119,8 +119,8 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
 
     async def hello(self, msg):
 
-        embed = await self.get_embed("hello",
-                                #guild=msg.guild,
+        embed = self.get_embed("hello",
+                                reply_to=msg,
                                 prefix = self.prefix
                                 )
 
@@ -149,41 +149,13 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
 
                 desc += f"**{trigger}**: {text}\n"
 
-        return await self.get_embed("help", 
-                                    #guild = msg.guild, 
+        return self.get_embed("help", 
+                                    reply_to=msg,
                                     desc = desc
                                     )
     '''
     INTEGRAL AXEBOT COMMANDS
     '''
-    async def current( self, msg):
-
-        self.open_session()
-
-        # Get the current year and season for grades
-
-        # Get most recent terms from nau
-            # function: self.calculate_current_term()
-        catalog_term = self.get_latest_term( "Catalog" )
-        grades_term  = self.get_latest_term( "Grades" )
-
-        # Get most recent terms from my db
-        last_catalog_term = self.retrieve_highest_term( "Course" )
-        last_grades_term = self.retrieve_highest_term( "Section" )
-
-        # Get the current year and season for grades
-        course_season, course_year = self.calculate_year_and_season( last_catalog_term )
-        grades_season, grades_year = self.calculate_year_and_season( last_grades_term )
-
-        return await self.get_embed( "current-terms",
-                                    grades_season=grades_season,
-                                    grades_year=grades_year,
-                                    course_season=course_season,
-                                    course_year=course_year,
-                                    ct=catalog_term, 
-                                    gt=grades_term,
-                                    lct=last_catalog_term,
-                                    lgt=last_grades_term)
 
     async def all_sections( self, msg, search_info=None ):
 
@@ -195,7 +167,7 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
             
             # Fail out if invalid grades search
             if search_info == None:
-                return await self.get_embed( "invalid-command-grades",
+                return self.get_embed( "invalid-command-grades",
                                             reply_to=msg,
                                             prefix=self.prefix
                                         )
@@ -221,24 +193,55 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
                 desc = format.embed_past_sections( searchInfo=search_info, records=records )
 
                 # return formatted embed
-                return await self.get_embed("all-sections",
+                return self.get_embed("all-sections",
                                             reply_to=msg,
                                             search_code=search_info.search_code,
                                             desc=desc)
             
             # Grades have never been available for this course
             else:
-                return await self.get_embed( "grades-unavailable-past", 
+                return self.get_embed( "grades-unavailable-past", 
                                         reply_to=msg,
                                         search_code=search_info.search_code
                                         )
 
         # if there is not a course
         else:
-            return await self.get_embed( "course-not-found", 
+            return self.get_embed( "course-not-found", 
                                          reply_to=msg,
                                          search_code=search_info.search_code     
             )
+        
+    async def current( self, msg):
+
+        # open session
+        self.open_session()
+
+        # Get the current year and season for grades
+
+        # Get most recent terms from nau
+        catalog_term = self.get_latest_term( "Catalog" )
+        grades_term  = self.get_latest_term( "Grades" )
+
+        # Get most recent terms from my db
+        last_catalog_term = self.retrieve_highest_term( "Course" )
+        last_grades_term = self.retrieve_highest_term( "Section" )
+
+        # Get the current year and season for grades
+        course_season, course_year = self.calculate_year_and_season( last_catalog_term )
+        grades_season, grades_year = self.calculate_year_and_season( last_grades_term )
+
+        return self.get_embed( "current-terms",
+                                    reply_to=msg,
+                                    grades_season=grades_season,
+                                    grades_year=grades_year,
+                                    course_season=course_season,
+                                    course_year=course_year,
+                                    ct=catalog_term, 
+                                    gt=grades_term,
+                                    lct=last_catalog_term,
+                                    lgt=last_grades_term)
+    
     async def grades( self, msg ):
 
         # initialize variables
@@ -249,15 +252,18 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
         
         # Fail out if invalid grades search
         if search_info == None:
-            return await self.get_embed( "invalid-command-grades",
-                                        reply_to=msg,
-                                        prefix=self.prefix
-                                        )
+            return self.get_embed( 
+                                    "invalid-command-grades",
+                                    reply_to=msg,
+                                    prefix=self.prefix
+                                    )
         # trigger if search term is too low
         if int( search_info.term ) < int( self.end_term):
 
-            return await self.get_embed("term-too-low",
-                                        reply_to=msg,)
+            return self.get_embed(
+                                        "term-too-low",
+                                        reply_to=msg
+                                        )
         
         # trigger if search term is too high, but is the current term
         if int( search_info.term ) > int( highest_term ):
@@ -265,8 +271,10 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
             # They are looking too far ahead, like Summer 2300
             if not self.is_current_term( search_info.term ):
 
-                return await self.get_embed("term-too-high",
-                                            reply_to=msg,)
+                return self.get_embed(
+                                            "term-too-high",
+                                            reply_to=msg
+                                            )
 
             # No term provided; just set the term down to the most recent term in db
             search_info.term = highest_term
@@ -290,7 +298,7 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
 
                 desc = format.embed_grades( records )
 
-                embed = await self.get_embed( "grades",
+                embed = self.get_embed( "grades",
                                             reply_to=msg,
                                             search_code=search_info.search_code,
                                             desc=desc,
@@ -299,7 +307,7 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
                                             )
                 
                 # set the embed's file
-                embed.set_file ( self.create_figure( search_info, records ) )
+                embed.set_file ( filepath=self.create_figure( search_info, records ) )
                 return embed
             
             # A course ID exists for this, but no sections
@@ -310,7 +318,7 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
 
         # if there is not a course
         else:
-            return await self.get_embed( "course-not-found", 
+            return self.get_embed( "course-not-found", 
                                          reply_to=msg,
                             )
             
@@ -332,22 +340,95 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
     
         return None
         
-    # async def user_retrieve( self, msg ):
+    async def test_commands( self, msg ):
 
-    #     # initialize variables
-    #     command_parts = msg.content.split(" ", 2)
-    #     model_str = command_parts[1].lower()  # Extracts 'section'
-    #     json_string = command_parts[2].upper()  # Extracts the JSON string
-    #     filters = json.loads(json_string)
+        # initialize variables
+        commands = [ 
+                    f"{self.prefix}help",
 
-    #     # get the query
-    #     results = self.custom_query( model_str, filters )
+                    f"{self.prefix}all sta471",
 
-    #     print(results)
+                    f"{self.prefix}grades",
+                    f"{self.prefix}grades cs 126l",
+                    f"{self.prefix}grades cs126l",
+                    f"{self.prefix}grades cs126l fall 2023",
 
-    #     embed = await self.get_embed( "custom-query",
-    #                                  desc=results )
+                    f"{self.prefix}lookup",
+                    f"{self.prefix}lookup cs 126l",
+                    f"{self.prefix}lookup cs126l",
+                    f"{self.prefix}lookup cs126l fall 2023",
 
+                    # current 
+                    f"{self.prefix}current",
+                    ]
+        passed = 0
+        failed = 0
+        desc = ""
+
+        # loop though commands
+        for command in commands:
+
+            # create a msg object
+            custom_msg = MockDiscordMsg( 
+                                        content = command,
+                                        author  = msg.author,
+                                        channel = msg.channel,
+                                        guild   = msg.guild
+                                        )
+
+            # attempt handling
+            try:
+                
+                # try embed
+                tested_embed = await self.handle_command( custom_msg )
+                #tested_embed.reply_to = None
+                #await tested_embed.send( msg.guild )
+
+                # get success embed 
+                embed = self.get_embed( 
+                                        "unit-test-success",
+                                        channel=msg.channel.name,
+                                        context=command,
+                                      )
+                
+                
+                # add extras
+                if tested_embed != None:
+
+                    # set description
+                    embed.description = tested_embed.description[0:100] + " . . ." 
+
+                    # set file if exists
+                    if tested_embed.filepath != None:
+                        
+                        # set the file
+                        embed.set_file( filepath=tested_embed.filepath )
+
+                passed += 1
+                desc += f"✅ {command}\n"
+                    
+            # something went wrong, format 
+            except Exception as e:
+                
+                print(e)
+                embed = self.get_embed( 
+                                        "unit-test-failure",
+                                        channel=msg.channel,
+                                        context=command,
+                                        e=e
+                                        )
+                
+                desc += f"❌ {command}\n"
+
+            # send the unit test embed
+            await embed.send( msg.guild )
+
+        # send summary embed
+        return self.get_embed( "unit-test-desc",
+                                reply_to=msg,
+                                passed=passed,
+                                failed=failed,
+                                desc=desc)
 
 
     '''
@@ -415,6 +496,11 @@ class Bot( EmbedHandler, DatabaseHandler, ChartHandler ):
                                                     "List the current semester supported by this bot",
                                                     False
                             ),
+                            self.prefix + "test":(
+                                                    self.test_commands,
+                                                    "Unit test the bot",
+                                                    True
+                            )
                             # self.prefix + "retrieve":(
                             #                         self.user_retrieve,
                             #                         "Send a query to the database",

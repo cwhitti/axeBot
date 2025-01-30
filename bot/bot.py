@@ -47,11 +47,9 @@ def run_discord_bot():
         print("Updating database...")
         passive_update_database.start()
 
-        bot.ready = True
-
+        bot.ready = True 
         # Print bot is now running
         print(f"{bot.name} is now running!")
-
     # Message Handler
     @client.event
     async def on_message(msg):
@@ -66,14 +64,15 @@ def run_discord_bot():
             # Bot is not ready to handle messages yet as it hasn't synced yet
             if not bot.ready:
 
-                embed = await bot.get_embed("bot-not-ready", 
+                embed = bot.get_embed("bot-not-ready", 
+                                        reply_to=msg,
                                         mention=msg.author.mention)
             
             # handle the command, grab the embed
             else:
                 embed = await bot.handle_command( msg )
 
-            await send_embed( embed, msg.guild, msg.channel )
+            await send_embed( embed, msg.guild )
             
             return
 
@@ -81,7 +80,7 @@ def run_discord_bot():
         # Should be  the very last command inside of run_discord_bot 
     client.run( bot.token )
 
-async def send_embed( embed, guild, channel ):
+async def send_embed( embed, guild ):
     # Send 
     if embed != None:
-        await embed.send( guild, channel )
+        await embed.send( guild )
